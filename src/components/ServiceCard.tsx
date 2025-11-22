@@ -3,13 +3,14 @@ import React, {useEffect, useState} from 'react';
 import type {Endpoint, Service} from '../types';
 import EndpointCard from './EndpointCard';
 import axios from "axios";
+import '../styles/dashboard.css'
+import {createPortal} from "react-dom";
 
 interface ServiceCardProps {
     service: Service;
-    onServiceUpdate: () => void;
 }
 
-const ServiceCard: React.FC<ServiceCardProps> = ({service, onServiceUpdate}) => {
+const ServiceCard: React.FC<ServiceCardProps> = ({service}) => {
     const [endpoints, setEndpoints] = useState<Endpoint[]>([]);
     const [expanded, setExpanded] = useState(true);
     const [showAddEndpoint, setShowAddEndpoint] = useState(false);
@@ -21,6 +22,25 @@ const ServiceCard: React.FC<ServiceCardProps> = ({service, onServiceUpdate}) => 
         timeout: 30,
         expected_status: 200
     });
+    useEffect(() => {
+        const handleEscKey = (e: KeyboardEvent) => {
+            if (e.key === 'Escape') {
+                setShowAddEndpoint(false);
+            }
+        };
+
+        if (showAddEndpoint) {
+            document.addEventListener('keydown', handleEscKey);
+            document.body.classList.add('modal-open');
+        } else {
+            document.body.classList.remove('modal-open');
+        }
+
+        return () => {
+            document.removeEventListener('keydown', handleEscKey);
+            document.body.classList.remove('modal-open');
+        };
+    }, [showAddEndpoint]);
 
 
     // 获取服务的所有端点
@@ -58,7 +78,11 @@ const ServiceCard: React.FC<ServiceCardProps> = ({service, onServiceUpdate}) => 
             fetchEndpoints();
         }
     }, [expanded, service.id]);
-
+    const handleModalBackgroundClick = (e: React.MouseEvent) => {
+        if (e.target === e.currentTarget) {
+            setShowAddEndpoint(false);
+        }
+    };
     return (
         <div className="service-card">
             <div className="service-header">
@@ -77,11 +101,12 @@ const ServiceCard: React.FC<ServiceCardProps> = ({service, onServiceUpdate}) => 
                 <>
                     <p className="service-description">{service.desc}</p>
 
-                    {showAddEndpoint && (
-                        <div className="modal">
-                            <div className="modal-content">
+                    {showAddEndpoint && createPortal(
+                        <div className="modal" onClick={handleModalBackgroundClick}>
+                            <div className="modal-content" onClick={(e) => e.stopPropagation()}>
                                 <h3>添加端点到 {service.name}</h3>
                                 <form onSubmit={handleAddEndpoint}>
+                                    {/* 表单内容保持不变 */}
                                     <div>
                                         <label>端点名称:</label>
                                         <input
@@ -155,7 +180,8 @@ const ServiceCard: React.FC<ServiceCardProps> = ({service, onServiceUpdate}) => 
                                     </div>
                                 </form>
                             </div>
-                        </div>
+                        </div>,
+                        document.body
                     )}
 
                     <div className="endpoints-grid">

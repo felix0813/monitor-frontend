@@ -1,16 +1,16 @@
 // src/components/EndpointCard.tsx
 import React from 'react';
-import type {Endpoint} from '../types';
+import type { Endpoint } from '../types';
 import axios from "axios";
+import "../styles/dashboard.css"
 
 interface EndpointCardProps {
     endpoint: Endpoint;
     onEndpointUpdate: () => void;
 }
 
-const EndpointCard: React.FC<EndpointCardProps> = ({endpoint, onEndpointUpdate}) => {
+const EndpointCard: React.FC<EndpointCardProps> = ({ endpoint, onEndpointUpdate }) => {
     // 手动检查端点状态
-
     const checkEndpointNow = async () => {
         try {
             await axios.post(`/api/endpoints/${endpoint.id}/check`);
@@ -20,16 +20,17 @@ const EndpointCard: React.FC<EndpointCardProps> = ({endpoint, onEndpointUpdate})
         }
     };
 
-
     // 获取状态颜色
     const getStatusColor = (status: string) => {
         switch (status) {
-            case 'healthy':
-                return 'green';
-            case 'unhealthy':
-                return 'red';
+            case '健康':
+                return '#4CAF50'; // 绿色
+            case '警告':
+                return '#FF9800'; // 橙色
+            case '错误':
+                return '#F44336'; // 红色
             default:
-                return 'gray';
+                return '#9E9E9E'; // 灰色
         }
     };
 
@@ -39,10 +40,17 @@ const EndpointCard: React.FC<EndpointCardProps> = ({endpoint, onEndpointUpdate})
                 <h3>{endpoint.name}</h3>
                 <span
                     className="status-indicator"
-                    style={{backgroundColor: getStatusColor(endpoint.last_status)}}
+                    style={{
+                        backgroundColor: getStatusColor(endpoint.last_status),
+                        padding: '4px 12px',
+                        borderRadius: '12px',
+                        color: 'white',
+                        fontSize: '0.85rem',
+                        fontWeight: '500'
+                    }}
                 >
-          {endpoint.last_status || '未知'}
-        </span>
+                    {endpoint.last_status || '未知'}
+                </span>
             </div>
 
             <div className="endpoint-details">
@@ -53,7 +61,12 @@ const EndpointCard: React.FC<EndpointCardProps> = ({endpoint, onEndpointUpdate})
             </div>
 
             <div className="endpoint-actions">
-                <button onClick={checkEndpointNow}>立即检查</button>
+                <button
+                    onClick={checkEndpointNow}
+                    className="check-button"
+                >
+                    立即检查
+                </button>
             </div>
         </div>
     );
