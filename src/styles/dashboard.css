@@ -21,6 +21,7 @@
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
   backdrop-filter: blur(10px);
   border: 1px solid rgba(255, 255, 255, 0.2);
+    white-space: nowrap;
 }
 
 .dashboard-header h1 {
@@ -41,6 +42,7 @@
   font-weight: 600;
   transition: all 0.3s ease;
   box-shadow: 0 4px 15px rgba(0, 123, 255, 0.3);
+    max-width: fit-content;
 }
 
 .add-service-btn:hover {
@@ -326,6 +328,7 @@ body.modal-open {
   border-radius: 20px;
   font-size: 14px;
   font-weight: 600;
+    min-width: fit-content;
 }
 
 .service-actions button {
@@ -338,6 +341,7 @@ body.modal-open {
   cursor: pointer;
   transition: all 0.2s ease;
   color: #495057;
+    min-width: fit-content;
 }
 
 .service-actions button:hover {
