@@ -71,3 +71,18 @@ button:disabled {
   background-color: #6c757d;
   cursor: not-allowed;
 }
+.beian-link-container {
+  margin-top: 20px;
+  text-align: center;
+}
+
+.beian-link-container a {
+  color: #666;
+  font-size: 12px;
+  text-decoration: none;
+}
+
+.beian-link-container a:hover {
+  color: #333;
+  text-decoration: underline;
+}

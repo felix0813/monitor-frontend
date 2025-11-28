@@ -75,6 +75,11 @@ const LoginPage: React.FC = () => {
             {loading ? 'Logging in...' : 'Login'}
           </button>
         </form>
+          <div className="beian-link-container">
+              <a href="https://beian.miit.gov.cn/" target="_blank" rel="noopener noreferrer">
+                  京ICP备2023011513号-2
+              </a>
+          </div>
       </div>
     </div>
   );
