@@ -257,25 +257,6 @@ body.modal-open {
     color: #333;
 }
 
-.check-button {
-    background-color: #1976d2;
-    color: white;
-    border: none;
-    border-radius: 4px;
-    padding: 8px 16px;
-    cursor: pointer;
-    font-weight: 500;
-    transition: background-color 0.3s ease;
-}
-
-.check-button:hover {
-    background-color: #1565c0;
-}
-
-.check-button:active {
-    transform: translateY(1px);
-}
-
 .status-indicator {
     display: inline-block;
     text-align: center;
@@ -330,26 +311,82 @@ body.modal-open {
   font-weight: 600;
     min-width: fit-content;
 }
-
 .service-actions button {
-  background: #f8f9fa;
-  border: 1px solid #dee2e6;
-  border-radius: 6px;
-  padding: 8px 16px;
-  font-size: 14px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  color: #495057;
+    background: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 6px;
+    padding: 8px 16px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    color: #495057;
     min-width: fit-content;
 }
 
 .service-actions button:hover {
-  background: #007bff;
-  color: white;
-  border-color: #007bff;
-  transform: translateY(-1px);
+    background: #007bff;
+    color: white;
+    border-color: #007bff;
+    transform: translateY(-1px);
 }
+/* 优化检查按钮样式 */
+.check-button {
+    background: linear-gradient(45deg, #1976d2, #2196f3);
+    color: white;
+    border: none;
+    border-radius: 6px;
+    padding: 8px 16px;
+    cursor: pointer;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 4px rgba(25, 118, 210, 0.3);
+}
+
+.check-button:hover {
+    background: linear-gradient(45deg, #1565c0, #1976d2);
+    box-shadow: 0 4px 8px rgba(25, 118, 210, 0.4);
+    transform: translateY(-1px);
+}
+
+.check-button:active {
+    transform: translateY(1px);
+}
+
+/* 优化删除按钮样式 */
+.delete-button {
+    background: linear-gradient(45deg, #f44336, #e53935);
+    color: white;
+    border: none;
+    border-radius: 6px;
+    padding: 8px 16px;
+    cursor: pointer;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 4px rgba(244, 67, 54, 0.3);
+    margin-left: 8px;
+}
+
+.delete-button:hover {
+    background: linear-gradient(45deg, #d32f2f, #c62828);
+    box-shadow: 0 4px 8px rgba(244, 67, 54, 0.4);
+    transform: translateY(-1px);
+}
+
+.delete-button:active {
+    transform: translateY(1px);
+}
+
+/* 为按钮组添加更好的布局 */
+.endpoint-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 15px;
+    padding-top: 15px;
+    border-top: 1px solid #eee;
+}
+
 
 .service-description {
   color: #666;

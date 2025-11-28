@@ -33,6 +33,20 @@ const EndpointCard: React.FC<EndpointCardProps> = ({ endpoint, onEndpointUpdate 
                 return '#9E9E9E'; // 灰色
         }
     };
+// 添加删除端点的函数
+const deleteEndpoint = async () => {
+    if (!window.confirm(`确定要删除端点 "${endpoint.name}" 吗？`)) {
+        return;
+    }
+
+    try {
+        await axios.delete(`/api/endpoints/${endpoint.id}`);
+        onEndpointUpdate(); // 删除成功后刷新数据
+    } catch (error) {
+        console.error('Failed to delete endpoint:', error);
+        alert('删除端点失败');
+    }
+};
 
     return (
         <div className="endpoint-card">
@@ -66,6 +80,12 @@ const EndpointCard: React.FC<EndpointCardProps> = ({ endpoint, onEndpointUpdate 
                     className="check-button"
                 >
                     立即检查
+                </button>
+                <button
+                    onClick={deleteEndpoint}
+                    className="delete-button"
+                >
+                    删除
                 </button>
             </div>
         </div>

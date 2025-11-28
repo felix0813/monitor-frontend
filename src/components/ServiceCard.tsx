@@ -8,9 +8,10 @@ import {createPortal} from "react-dom";
 
 interface ServiceCardProps {
     service: Service;
+    onUpdate: () => void;
 }
 
-const ServiceCard: React.FC<ServiceCardProps> = ({service}) => {
+const ServiceCard: React.FC<ServiceCardProps> = ({service, onUpdate}) => {
     const [endpoints, setEndpoints] = useState<Endpoint[]>([]);
     const [expanded, setExpanded] = useState(true);
     const [showAddEndpoint, setShowAddEndpoint] = useState(false);
@@ -21,6 +22,11 @@ const ServiceCard: React.FC<ServiceCardProps> = ({service}) => {
         interval: 60,
         timeout: 30,
         expected_status: 200
+    });
+    const [showEditService, setShowEditService] = useState(false);
+    const [editServiceData, setEditServiceData] = useState({
+        name: service.name,
+        desc: service.desc
     });
     useEffect(() => {
         const handleEscKey = (e: KeyboardEvent) => {
@@ -72,7 +78,18 @@ const ServiceCard: React.FC<ServiceCardProps> = ({service}) => {
             console.error('Failed to add endpoint:', error);
         }
     };
-
+    const handleUpdateService = async (e: React.FormEvent) => {
+        e.preventDefault();
+        try {
+            await axios.put(`/api/services/${service.id}`, editServiceData);
+            // 更新成功后的处理，例如刷新页面或更新父组件数据
+            setShowEditService(false);
+            // 如果有父组件传递的更新回调函数，则调用它
+            onUpdate();
+        } catch (error) {
+            console.error('Failed to update service:', error);
+        }
+    };
     useEffect(() => {
         if (expanded) {
             fetchEndpoints();
@@ -93,6 +110,11 @@ const ServiceCard: React.FC<ServiceCardProps> = ({service}) => {
                         {expanded ? '收起' : '展开'}
                     </button>
                     <button onClick={() => setShowAddEndpoint(true)}>添加端点</button>
+                    <button onClick={() => {
+                        setEditServiceData({name: service.name, desc: service.desc});
+                        setShowEditService(true);
+                    }}>编辑服务
+                    </button>
                     <button onClick={fetchEndpoints}>刷新</button>
                 </div>
             </div>
@@ -183,6 +205,45 @@ const ServiceCard: React.FC<ServiceCardProps> = ({service}) => {
                         </div>,
                         document.body
                     )}
+                    {showEditService && createPortal(
+                        <div className="modal"
+                             onClick={(e) => e.target === e.currentTarget && setShowEditService(false)}>
+                            <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+                                <h3>编辑服务 {service.name}</h3>
+                                <form onSubmit={handleUpdateService}>
+                                    <div>
+                                        <label>服务名称:</label>
+                                        <input
+                                            type="text"
+                                            value={editServiceData.name}
+                                            onChange={(e) => setEditServiceData({
+                                                ...editServiceData,
+                                                name: e.target.value
+                                            })}
+                                            required
+                                        />
+                                    </div>
+                                    <div>
+                                        <label>服务描述:</label>
+                                        <textarea
+                                            className="service-edit-textarea"
+                                            value={editServiceData.desc}
+                                            onChange={(e) => setEditServiceData({
+                                                ...editServiceData,
+                                                desc: e.target.value
+                                            })}
+                                        />
+                                    </div>
+                                    <div className="form-actions">
+                                        <button type="submit">保存</button>
+                                        <button type="button" onClick={() => setShowEditService(false)}>取消</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>,
+                        document.body
+                    )}
+
 
                     <div className="endpoints-grid">
                         {endpoints.map(endpoint => (

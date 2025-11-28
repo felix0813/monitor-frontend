@@ -100,7 +100,7 @@ const MonitorDashboard: React.FC = () => {
         <div className="services-list">
           {services.length > 0 ? (
             services.map(service => (
-              <ServiceCard key={service.id} service={service} />
+              <ServiceCard key={service.id} service={service} onUpdate={fetchServices} />
             ))
           ) : (
             <div className="empty-state">
