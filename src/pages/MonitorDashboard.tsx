@@ -54,12 +54,20 @@ const MonitorDashboard: React.FC = () => {
       <div className="dashboard-container">
         <header className="dashboard-header">
           <h1>服务监控面板</h1>
-          <button
-            className="add-service-btn"
-            onClick={() => setShowAddService(true)}
-          >
-            + 添加服务
-          </button>
+          <div className="header-actions">
+            <button
+                className="probe-btn"
+                onClick={() => window.open('/probe', '_blank')}
+            >
+              🚀 探针页面
+            </button>
+            <button
+                className="add-service-btn"
+                onClick={() => setShowAddService(true)}
+            >
+              + 添加服务
+            </button>
+          </div>
         </header>
 
         {showAddService && (

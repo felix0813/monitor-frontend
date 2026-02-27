@@ -31,6 +31,34 @@
   font-weight: 700;
 }
 
+.header-actions {
+    display: flex;
+    gap: 15px;
+    align-items: center;
+}
+
+.probe-btn {
+    background: linear-gradient(45deg, #ff6b6b, #ffa500);
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 30px;
+    cursor: pointer;
+    font-size: 15px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(255, 107, 107, 0.3);
+    max-width: fit-content;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.probe-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(255, 107, 107, 0.4);
+}
+
 .add-service-btn {
   background: linear-gradient(45deg, #007bff, #00bcd4);
   color: white;
