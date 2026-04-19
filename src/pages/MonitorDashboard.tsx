@@ -1,11 +1,10 @@
-// src/pages/MonitorDashboard.tsx
-import React, { useEffect, useState } from 'react';
-import type { Service } from '../types';
-import ServiceCard from "../components/ServiceCard.tsx";
-import axios from "axios";
+import React, {useEffect, useState} from 'react';
+import axios from 'axios';
+import ServiceCard from '../components/ServiceCard';
+import type {Service} from '../types';
 import '../styles/dashboard.css';
 
-const MonitorDashboard: React.FC = () => {
+function MonitorDashboard() {
   const [services, setServices] = useState<Service[]>([]);
   const [loading, setLoading] = useState(true);
   const [showAddService, setShowAddService] = useState(false);
@@ -22,11 +21,12 @@ const MonitorDashboard: React.FC = () => {
     }
   };
 
-  const handleAddService = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleAddService = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+
     try {
       const response = await axios.post('/api/services', newService);
-      setServices([...services, response.data]);
+      setServices((current) => [...current, response.data]);
       setNewService({ name: '', desc: '' });
       setShowAddService(false);
     } catch (error) {
@@ -40,65 +40,71 @@ const MonitorDashboard: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="dashboard">
-        <div className="loading-container">
-          <div className="spinner"></div>
-          <p>正在加载服务数据...</p>
+        <section className="dashboard-page">
+          <div className="dashboard-loading-card">
+            <div className="spinner"/>
+            <p>正在加载服务列表...</p>
         </div>
-      </div>
+        </section>
     );
   }
 
   return (
-    <div className="dashboard">
-      <div className="dashboard-container">
-        <header className="dashboard-header">
-          <h1>服务监控面板</h1>
-          <div className="header-actions">
-            <button
-                className="probe-btn"
-                onClick={() => window.open('/probe', '_blank')}
-            >
-              🚀 探针页面
+      <section className="dashboard-page">
+        <div className="dashboard-header-card">
+          <div>
+            <p className="dashboard-kicker">Service Monitor</p>
+            <h2>服务监控中心</h2>
+            <p className="dashboard-intro">当前服务监控页面已迁移到 `/monitor`，后续可以在此扩展更多功能页面</p>
+          </div>
+
+          <div className="dashboard-header-actions">
+            <button type="button" className="ghost-action-button" onClick={() => window.open('/probe', '_blank')}>
+              探测页面
             </button>
-            <button
-                className="add-service-btn"
-                onClick={() => setShowAddService(true)}
-            >
-              + 添加服务
+            <button type="button" className="primary-action-button" onClick={() => setShowAddService(true)}>
+              添加服务
             </button>
           </div>
-        </header>
+        </div>
 
         {showAddService && (
-          <div className="modal">
-            <div className="modal-content">
-              <h2>添加新服务</h2>
+            <div className="modal" onClick={() => setShowAddService(false)}>
+              <div className="modal-content" onClick={(event) => event.stopPropagation()}>
+                <h2>添加路由</h2>
               <form onSubmit={handleAddService}>
                 <div className="form-group">
-                  <label>服务名称:</label>
+                  <label htmlFor="service-name">服务名称</label>
                   <input
-                    type="text"
-                    value={newService.name}
-                    onChange={(e) => setNewService({ ...newService, name: e.target.value })}
-                    required
-                    className="form-input"
-                    placeholder="请输入服务名称"
+                      id="service-name"
+                      type="text"
+                      value={newService.name}
+                      onChange={(event) => setNewService({...newService, name: event.target.value})}
+                      required
+                      className="form-input"
+                      placeholder="请输入服务名称"
                   />
                 </div>
+
                 <div className="form-group">
-                  <label>服务描述:</label>
+                  <label htmlFor="service-desc">服务描述</label>
                   <textarea
-                    value={newService.desc}
-                    onChange={(e) => setNewService({ ...newService, desc: e.target.value })}
-                    className="form-textarea"
-                    placeholder="请输入服务描述（可选）"
-                    rows={4}
+                      id="service-desc"
+                      value={newService.desc}
+                      onChange={(event) => setNewService({...newService, desc: event.target.value})}
+                      className="form-textarea"
+                      placeholder="请输入服务描述信息"
+                      rows={4}
                   />
                 </div>
+
                 <div className="form-actions">
-                  <button type="button" className="btn-secondary" onClick={() => setShowAddService(false)}>取消</button>
-                  <button type="submit" className="btn-primary">添加服务</button>
+                  <button type="button" className="btn-secondary" onClick={() => setShowAddService(false)}>
+                    取消
+                  </button>
+                  <button type="submit" className="btn-primary">
+                    确认添加
+                  </button>
                 </div>
               </form>
             </div>
@@ -107,18 +113,15 @@ const MonitorDashboard: React.FC = () => {
 
         <div className="services-list">
           {services.length > 0 ? (
-            services.map(service => (
-              <ServiceCard key={service.id} service={service} onUpdate={fetchServices} />
-            ))
+              services.map((service) => <ServiceCard key={service.id} service={service} onUpdate={fetchServices}/>)
           ) : (
             <div className="empty-state">
-              <p>暂无服务，请添加第一个服务开始监控</p>
+              <p>暂无服务，请添加第一个服务开始监控。</p>
             </div>
           )}
-        </div>
       </div>
-    </div>
+      </section>
   );
-};
+}
 
 export default MonitorDashboard;

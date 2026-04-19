@@ -1,0 +1,35 @@
+.coming-soon-page {
+  min-height: 60vh;
+  display: grid;
+  place-items: center;
+}
+
+.coming-soon-card {
+  width: min(720px, 100%);
+  padding: 40px;
+  border-radius: 28px;
+  background: rgba(22, 20, 20, 0.72);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.28);
+}
+
+.coming-soon-kicker {
+  margin: 0 0 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  font-size: 12px;
+  color: rgba(255, 237, 213, 0.72);
+}
+
+.coming-soon-card h2 {
+  margin: 0 0 12px;
+  font-size: clamp(32px, 5vw, 48px);
+  color: #fff7ed;
+}
+
+.coming-soon-card p:last-child {
+  margin: 0;
+  font-size: 16px;
+  line-height: 1.8;
+  color: rgba(255, 244, 230, 0.82);
+}
