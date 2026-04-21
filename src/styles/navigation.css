@@ -144,9 +144,22 @@
 }
 
 .portal-search {
-  display: grid;
+  display: flex;
+  align-items: center;
   gap: 10px;
   color: rgba(255, 244, 230, 0.84);
+}
+
+.portal-search svg {
+  flex-shrink: 0;
+  color: rgba(255, 244, 230, 0.64);
+}
+
+.portal-toolbar-hint {
+  justify-self: start;
+  color: rgba(255, 244, 230, 0.62);
+  font-size: 14px;
+  white-space: nowrap;
 }
 
 .portal-search input,
@@ -171,6 +184,25 @@
   position: relative;
   overflow: hidden;
   padding: 24px;
+}
+
+.portal-card-draggable {
+  cursor: grab;
+  user-select: none;
+}
+
+.portal-card-draggable:active {
+  cursor: grabbing;
+}
+
+.portal-card-dragging {
+  opacity: 0.42;
+  transform: scale(0.98);
+}
+
+.portal-card-drop-target {
+  border-color: rgba(251, 146, 60, 0.72);
+  box-shadow: 0 0 0 1px rgba(251, 146, 60, 0.34), 0 24px 80px rgba(0, 0, 0, 0.2);
 }
 
 .portal-card::before {
@@ -353,5 +385,10 @@
   .portal-copy h2 {
     max-width: none;
     font-size: clamp(34px, 10vw, 56px);
+  }
+
+  .portal-toolbar-hint {
+    justify-self: start;
+    white-space: normal;
   }
 }

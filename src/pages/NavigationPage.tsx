@@ -1,7 +1,7 @@
 import React, {useEffect, useMemo, useState} from 'react';
 import {Link} from 'react-router-dom';
 import navigationService from '../services/NavigationService';
-import type {NavigationSite, CreateNavigationSiteRequest, UpdateNavigationSiteRequest} from '../types';
+import type {CreateNavigationSiteRequest, NavigationSite, UpdateNavigationSiteRequest} from '../types';
 import '../styles/navigation.css';
 
 const accentOptions = ['#0f766e', '#2563eb', '#9333ea', '#ea580c', '#dc2626', '#059669'];
@@ -22,6 +22,20 @@ function normalizeUrl(url: string) {
     return `https://${url}`;
 }
 
+function reorderItems(items: NavigationSite[], draggedId: string, targetId: string) {
+    const draggedIndex = items.findIndex((item) => item.id === draggedId);
+    const targetIndex = items.findIndex((item) => item.id === targetId);
+
+    if (draggedIndex === -1 || targetIndex === -1 || draggedIndex === targetIndex) {
+        return items;
+    }
+
+    const nextItems = [...items];
+    const [draggedItem] = nextItems.splice(draggedIndex, 1);
+    nextItems.splice(targetIndex, 0, draggedItem);
+    return nextItems;
+}
+
 function NavigationPage() {
     const [links, setLinks] = useState<NavigationSite[]>([]);
     const [query, setQuery] = useState('');
@@ -29,6 +43,9 @@ function NavigationPage() {
     const [form, setForm] = useState(emptyForm);
     const [loading, setLoading] = useState(true);
     const [editingId, setEditingId] = useState<string | null>(null);
+    const [draggedId, setDraggedId] = useState<string | null>(null);
+    const [dropTargetId, setDropTargetId] = useState<string | null>(null);
+    const [isSavingOrder, setIsSavingOrder] = useState(false);
 
     useEffect(() => {
         loadNavigationSites();
@@ -64,6 +81,8 @@ function NavigationPage() {
                 .includes(keyword),
         );
     }, [links, query]);
+
+    const isDragEnabled = query.trim().length === 0 && !loading && !isSavingOrder;
 
     const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
@@ -125,6 +144,59 @@ function NavigationPage() {
         setShowForm(true);
     };
 
+    const resetDragState = () => {
+        setDraggedId(null);
+        setDropTargetId(null);
+    };
+
+    const handleDragStart = (siteId: string) => {
+        if (!isDragEnabled) {
+            return;
+        }
+
+        setDraggedId(siteId);
+        setDropTargetId(siteId);
+    };
+
+    const handleDragOver = (event: React.DragEvent<HTMLElement>, siteId: string) => {
+        if (!isDragEnabled || !draggedId || draggedId === siteId) {
+            return;
+        }
+
+        event.preventDefault();
+        if (dropTargetId !== siteId) {
+            setDropTargetId(siteId);
+        }
+    };
+
+    const handleDrop = async (targetId: string) => {
+        if (!isDragEnabled || !draggedId || draggedId === targetId) {
+            resetDragState();
+            return;
+        }
+
+        const previousLinks = links;
+        const reorderedLinks = reorderItems(links, draggedId, targetId);
+        if (reorderedLinks === links) {
+            resetDragState();
+            return;
+        }
+
+        setLinks(reorderedLinks);
+        setIsSavingOrder(true);
+
+        try {
+            await navigationService.reorderNavigationSites(reorderedLinks.map((item) => item.id));
+        } catch (error) {
+            console.error('Failed to reorder navigation sites:', error);
+            setLinks(previousLinks);
+            alert('排序保存失败，请重试');
+        } finally {
+            setIsSavingOrder(false);
+            resetDragState();
+        }
+    };
+
     return (
         <section className="navigation-page">
             <header className="portal-hero">
@@ -165,7 +237,10 @@ function NavigationPage() {
 
             <section className="portal-toolbar">
                 <label className="portal-search">
-                    <span>搜索</span>
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <circle cx="11" cy="11" r="8"></circle>
+                        <path d="m21 21-4.35-4.35"></path>
+                    </svg>
                     <input
                         type="text"
                         value={query}
@@ -174,13 +249,24 @@ function NavigationPage() {
                     />
                 </label>
             </section>
-
+            <span className="portal-toolbar-hint">
+                    {query.trim() ? '清空搜索后可拖拽排序' : isSavingOrder ? '正在保存排序...' : '拖拽卡片可调整顺序'}
+                </span>
             {loading ? (
                 <div className="portal-loading">加载中...</div>
             ) : (
                 <section className="portal-grid">
                     {filteredLinks.map((item) => (
-                        <article key={item.id} className="portal-card" style={{['--card-accent' as string]: item.tags && item.tags.length > 0 ? accentOptions[item.tags[0].charCodeAt(0) % accentOptions.length] : accentOptions[0]}}>
+                        <article
+                            key={item.id}
+                            className={`portal-card${isDragEnabled ? ' portal-card-draggable' : ''}${draggedId === item.id ? ' portal-card-dragging' : ''}${dropTargetId === item.id && draggedId !== item.id ? ' portal-card-drop-target' : ''}`}
+                            style={{['--card-accent' as string]: item.tags && item.tags.length > 0 ? accentOptions[item.tags[0].charCodeAt(0) % accentOptions.length] : accentOptions[0]}}
+                            draggable={isDragEnabled}
+                            onDragStart={() => handleDragStart(item.id)}
+                            onDragOver={(event) => handleDragOver(event, item.id)}
+                            onDrop={() => void handleDrop(item.id)}
+                            onDragEnd={resetDragState}
+                        >
                             <div className="portal-card-top">
                                 <span className="portal-card-category">{item.tags?.[0] || '未分类'}</span>
                                 <div className="portal-card-actions">
