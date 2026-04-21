@@ -30,9 +30,11 @@ function LoginPage() {
       navigate(redirectTo, {replace: true});
     } catch (err: unknown) {
       if (axios.isAxiosError(err)) {
-        setError(err.response?.data?.error || '登录失败');
+        setError(err.response?.data?.error || '登录失败，请检查用户名和密码');
+      } else if (err instanceof Error) {
+        setError(err.message || '登录失败');
       } else {
-        setError('发生未知错误');
+        setError('发生未知错误，请稍后重试');
       }
     } finally {
       setLoading(false);

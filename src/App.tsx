@@ -1,7 +1,8 @@
-import {Navigate, Route, Routes, useLocation} from 'react-router-dom';
 import {useEffect} from 'react';
+import {Navigate, Route, Routes, useLocation, useNavigate} from 'react-router-dom';
 import AppShell from './components/AppShell';
 import ProtectedRoute from './components/ProtectedRoute';
+import {UNAUTHORIZED_EVENT} from './constants/auth';
 import LoginPage from './pages/LoginPage';
 import MonitorDashboard from './pages/MonitorDashboard';
 import NavigationPage from './pages/NavigationPage';
@@ -28,7 +29,18 @@ function RouteTitleManager() {
 }
 
 function App() {
+  const navigate = useNavigate();
+  const location = useLocation();
   const isAuthenticated = authService.isAuthenticated();
+
+  useEffect(() => {
+    const handleUnauthorized = () => {
+      navigate('/login', {replace: true, state: {from: location}});
+    };
+
+    window.addEventListener(UNAUTHORIZED_EVENT, handleUnauthorized);
+    return () => window.removeEventListener(UNAUTHORIZED_EVENT, handleUnauthorized);
+  }, [location, navigate]);
 
   return (
     <>
@@ -41,13 +53,13 @@ function App() {
             <Route index element={<NavigationPage />} />
             <Route path="/monitor" element={<MonitorDashboard />} />
             <Route
-                path="/workspace"
-                element={
-                  <ComingSoonPage
-                      title="工作台"
-                      description="功能预览即将开放，敬请期待。路由已经就位，后续开发时直接在此扩展即可。"
-                  />
-                }
+              path="/workspace"
+              element={
+                <ComingSoonPage
+                    title="工作台"
+                    description="功能预览即将开放，敬请期待。路由已经就位，后续开发时直接在此扩展即可。"
+                />
+              }
             />
           </Route>
         </Route>

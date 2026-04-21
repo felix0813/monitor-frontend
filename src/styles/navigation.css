@@ -139,7 +139,7 @@
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
   gap: 16px;
-  align-items: end;
+  align-items: center;
   padding: 22px 24px;
 }
 
@@ -159,12 +159,6 @@
   color: #fff7ed;
   padding: 14px 16px;
   outline: none;
-}
-
-.portal-toolbar-note {
-  max-width: 420px;
-  color: rgba(255, 244, 230, 0.62);
-  line-height: 1.7;
 }
 
 .portal-grid {
@@ -210,6 +204,16 @@
   color: rgba(255, 244, 230, 0.62);
 }
 
+.portal-edit {
+  background: transparent;
+  color: rgba(255, 244, 230, 0.78);
+}
+
+.portal-card-actions {
+  display: flex;
+  gap: 8px;
+}
+
 .portal-card h3 {
   margin: 26px 0 12px;
   font-size: 28px;
@@ -235,6 +239,13 @@
 .portal-empty-state {
   padding: 44px;
   text-align: center;
+}
+
+.portal-loading {
+  padding: 60px;
+  text-align: center;
+  color: rgba(255, 244, 230, 0.78);
+  font-size: 18px;
 }
 
 .portal-modal {

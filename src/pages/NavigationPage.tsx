@@ -1,52 +1,8 @@
 import React, {useEffect, useMemo, useState} from 'react';
 import {Link} from 'react-router-dom';
+import navigationService from '../services/NavigationService';
+import type {NavigationSite, CreateNavigationSiteRequest, UpdateNavigationSiteRequest} from '../types';
 import '../styles/navigation.css';
-
-interface QuickLink {
-    id: string;
-    title: string;
-    url: string;
-    description: string;
-    category: string;
-    accent: string;
-}
-
-const STORAGE_KEY = 'portal.quick-links';
-
-const defaultLinks: QuickLink[] = [
-    {
-        id: 'ops-1',
-        title: 'Grafana',
-        url: 'https://grafana.com/',
-        description: '查看指标、仪表盘和告警配置。',
-        category: '监控',
-        accent: '#f97316',
-    },
-    {
-        id: 'ops-2',
-        title: 'GitHub',
-        url: 'https://github.com/',
-        description: '代码仓库、PR 和发布协作平台。',
-        category: '研发',
-        accent: '#22c55e',
-    },
-    {
-        id: 'ops-3',
-        title: 'Kibana',
-        url: 'https://www.elastic.co/kibana',
-        description: '检索日志、定位异常和分析链路。',
-        category: '日志',
-        accent: '#0ea5e9',
-    },
-    {
-        id: 'ops-4',
-        title: 'Jenkins',
-        url: 'https://www.jenkins.io/',
-        description: '构建流水线与发布管理面板。',
-        category: '部署',
-        accent: '#ef4444',
-    },
-];
 
 const accentOptions = ['#0f766e', '#2563eb', '#9333ea', '#ea580c', '#dc2626', '#059669'];
 
@@ -66,42 +22,33 @@ function normalizeUrl(url: string) {
     return `https://${url}`;
 }
 
-function readStoredLinks(): QuickLink[] {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(defaultLinks));
-        return defaultLinks;
-    }
-
-    try {
-        return JSON.parse(raw) as QuickLink[];
-    } catch {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(defaultLinks));
-        return defaultLinks;
-    }
-}
-
 function NavigationPage() {
-    const [links, setLinks] = useState<QuickLink[]>([]);
+    const [links, setLinks] = useState<NavigationSite[]>([]);
     const [query, setQuery] = useState('');
     const [showForm, setShowForm] = useState(false);
     const [form, setForm] = useState(emptyForm);
-    const [isReady, setIsReady] = useState(false);
+    const [loading, setLoading] = useState(true);
+    const [editingId, setEditingId] = useState<string | null>(null);
 
     useEffect(() => {
-        // eslint-disable-next-line react-hooks/set-state-in-effect
-        setLinks(readStoredLinks());
-        setIsReady(true);
+        loadNavigationSites();
     }, []);
 
-    useEffect(() => {
-        if (isReady) {
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(links));
+    const loadNavigationSites = async () => {
+        try {
+            setLoading(true);
+            const data = await navigationService.listNavigationSites();
+            setLinks(data);
+        } catch (error) {
+            console.error('Failed to load navigation sites:', error);
+        } finally {
+            setLoading(false);
         }
-    }, [isReady, links]);
+    };
 
     const categories = useMemo(() => {
-        return Array.from(new Set(links.map((item) => item.category).filter(Boolean)));
+        const allTags = links.flatMap((item) => item.tags || []);
+        return Array.from(new Set(allTags.filter(Boolean)));
     }, [links]);
 
     const filteredLinks = useMemo(() => {
@@ -111,32 +58,71 @@ function NavigationPage() {
         }
 
         return links.filter((item) =>
-            [item.title, item.description, item.category, item.url]
+            [item.name, item.description, ...(item.tags || []), item.url]
                 .join(' ')
                 .toLowerCase()
                 .includes(keyword),
         );
     }, [links, query]);
 
-    const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+    const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
 
-        const nextLink: QuickLink = {
-            id: `${Date.now()}`,
-            title: form.title.trim(),
+        const requestData: CreateNavigationSiteRequest = {
             url: normalizeUrl(form.url.trim()),
+            name: form.title.trim(),
             description: form.description.trim(),
-            category: form.category.trim() || '未分类',
-            accent: form.accent,
+            tags: form.category.trim() ? [form.category.trim()] : [],
         };
 
-        setLinks((current) => [nextLink, ...current]);
-        setForm(emptyForm);
-        setShowForm(false);
+        try {
+            if (editingId) {
+                const updateData: UpdateNavigationSiteRequest = {
+                    url: requestData.url,
+                    name: requestData.name,
+                    description: requestData.description,
+                    tags: requestData.tags,
+                };
+                const updated = await navigationService.updateNavigationSite(editingId, updateData);
+                setLinks((current) => current.map((item) => item.id === editingId ? updated : item));
+            } else {
+                const newSite = await navigationService.createNavigationSite(requestData);
+                setLinks((current) => [newSite, ...current]);
+            }
+
+            setForm(emptyForm);
+            setShowForm(false);
+            setEditingId(null);
+        } catch (error) {
+            console.error('Failed to save navigation site:', error);
+            alert('保存失败，请重试');
+        }
     };
 
-    const handleDelete = (id: string) => {
-        setLinks((current) => current.filter((item) => item.id !== id));
+    const handleDelete = async (id: string) => {
+        if (!confirm('确定要删除这个导航条目吗？')) {
+            return;
+        }
+
+        try {
+            await navigationService.deleteNavigationSite(id);
+            setLinks((current) => current.filter((item) => item.id !== id));
+        } catch (error) {
+            console.error('Failed to delete navigation site:', error);
+            alert('删除失败，请重试');
+        }
+    };
+
+    const handleEdit = (site: NavigationSite) => {
+        setForm({
+            title: site.name,
+            url: site.url,
+            description: site.description || '',
+            category: site.tags?.[0] || '',
+            accent: accentOptions[Math.floor(Math.random() * accentOptions.length)],
+        });
+        setEditingId(site.id);
+        setShowForm(true);
     };
 
     return (
@@ -150,7 +136,11 @@ function NavigationPage() {
                     </p>
 
                     <div className="portal-actions">
-                        <button type="button" className="portal-primary-button" onClick={() => setShowForm(true)}>
+                        <button type="button" className="portal-primary-button" onClick={() => {
+                            setForm(emptyForm);
+                            setEditingId(null);
+                            setShowForm(true);
+                        }}>
                             添加地址
                         </button>
                         <Link to="/monitor" className="portal-secondary-button">
@@ -166,8 +156,8 @@ function NavigationPage() {
                     <div className="portal-chip-row">
                         {(categories.length > 0 ? categories : ['未分类']).slice(0, 4).map((item) => (
                             <span key={item} className="portal-chip">
-                {item}
-              </span>
+                                {item}
+                            </span>
                         ))}
                     </div>
                 </div>
@@ -183,48 +173,64 @@ function NavigationPage() {
                         placeholder="搜索标题、说明或完整地址"
                     />
                 </label>
-                <div className="portal-toolbar-note">数据保存在当前浏览器本地，后续可接入后端接口或直接替换存储层。</div>
             </section>
 
-            <section className="portal-grid">
-                {filteredLinks.map((item) => (
-                    <article key={item.id} className="portal-card" style={{['--card-accent' as string]: item.accent}}>
-                        <div className="portal-card-top">
-                            <span className="portal-card-category">{item.category}</span>
-                            <button type="button" className="portal-delete" onClick={() => handleDelete(item.id)}>
-                                删除
-                            </button>
+            {loading ? (
+                <div className="portal-loading">加载中...</div>
+            ) : (
+                <section className="portal-grid">
+                    {filteredLinks.map((item) => (
+                        <article key={item.id} className="portal-card" style={{['--card-accent' as string]: item.tags && item.tags.length > 0 ? accentOptions[item.tags[0].charCodeAt(0) % accentOptions.length] : accentOptions[0]}}>
+                            <div className="portal-card-top">
+                                <span className="portal-card-category">{item.tags?.[0] || '未分类'}</span>
+                                <div className="portal-card-actions">
+                                    <button type="button" className="portal-delete" onClick={() => handleEdit(item)}>
+                                        编辑
+                                    </button>
+                                    <button type="button" className="portal-delete" onClick={() => handleDelete(item.id)}>
+                                        删除
+                                    </button>
+                                </div>
+                            </div>
+
+                            <h3>{item.name}</h3>
+                            <p>{item.description || '未填写描述信息。'}</p>
+
+                            <div className="portal-card-footer">
+                                <span>{new URL(item.url).hostname}</span>
+                                <a href={item.url} target="_blank" rel="noreferrer">
+                                    访问
+                                </a>
+                            </div>
+                        </article>
+                    ))}
+
+                    {filteredLinks.length === 0 && !loading && (
+                        <div className="portal-empty-state">
+                            <h3>没有匹配项</h3>
+                            <p>尝试更换搜索词，或者添加新的内部系统入口。</p>
                         </div>
-
-                        <h3>{item.title}</h3>
-                        <p>{item.description || '未填写描述信息。'}</p>
-
-                        <div className="portal-card-footer">
-                            <span>{new URL(item.url).hostname}</span>
-                            <a href={item.url} target="_blank" rel="noreferrer">
-                                访问
-                            </a>
-                        </div>
-                    </article>
-                ))}
-
-                {filteredLinks.length === 0 && (
-                    <div className="portal-empty-state">
-                        <h3>没有匹配项</h3>
-                        <p>尝试更换搜索词，或者添加新的内部系统入口。</p>
-                    </div>
-                )}
-            </section>
+                    )}
+                </section>
+            )}
 
             {showForm && (
-                <div className="portal-modal" onClick={() => setShowForm(false)}>
+                <div className="portal-modal" onClick={() => {
+                    setShowForm(false);
+                    setEditingId(null);
+                    setForm(emptyForm);
+                }}>
                     <div className="portal-modal-panel" onClick={(event) => event.stopPropagation()}>
                         <div className="portal-modal-header">
                             <div>
-                                <p>New Entry</p>
-                                <h3>添加一个新的导航条目</h3>
+                                <p>{editingId ? 'Edit Entry' : 'New Entry'}</p>
+                                <h3>{editingId ? '编辑导航条目' : '添加一个新的导航条目'}</h3>
                             </div>
-                            <button type="button" className="portal-close" onClick={() => setShowForm(false)}>
+                            <button type="button" className="portal-close" onClick={() => {
+                                setShowForm(false);
+                                setEditingId(null);
+                                setForm(emptyForm);
+                            }}>
                                 关闭
                             </button>
                         </div>
@@ -281,28 +287,17 @@ function NavigationPage() {
                                 />
                             </label>
 
-                            <label>
-                                强调色
-                                <div className="portal-accent-list">
-                                    {accentOptions.map((accent) => (
-                                        <button
-                                            key={accent}
-                                            type="button"
-                                            className={form.accent === accent ? 'portal-accent portal-accent-active' : 'portal-accent'}
-                                            style={{backgroundColor: accent}}
-                                            onClick={() => setForm((current) => ({...current, accent}))}
-                                        />
-                                    ))}
-                                </div>
-                            </label>
-
                             <div className="portal-form-actions">
                                 <button type="button" className="portal-secondary-button"
-                                        onClick={() => setShowForm(false)}>
+                                        onClick={() => {
+                                            setShowForm(false);
+                                            setEditingId(null);
+                                            setForm(emptyForm);
+                                        }}>
                                     取消
                                 </button>
                                 <button type="submit" className="portal-primary-button">
-                                    确认添加
+                                    {editingId ? '确认修改' : '确认添加'}
                                 </button>
                             </div>
                         </form>

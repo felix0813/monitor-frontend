@@ -3,10 +3,13 @@ import {createRoot} from 'react-dom/client';
 import {BrowserRouter} from 'react-router-dom';
 import axios from 'axios';
 import App from './App';
+import {UNAUTHORIZED_EVENT} from './constants/auth';
 import authService from './services/AuthService';
 import './index.css';
 
 axios.defaults.baseURL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8081';
+
+let isHandlingUnauthorized = false;
 
 axios.interceptors.request.use(
     (config) => {
@@ -26,10 +29,14 @@ axios.interceptors.response.use(
             return Promise.reject(error);
         }
 
-        if (error.response?.status === 401) {
+        if (error.response?.status === 401 && !isHandlingUnauthorized) {
+            isHandlingUnauthorized = true;
             authService.logout();
             window.alert('认证失效，请重新登录');
-            window.location.href = '/login';
+            window.dispatchEvent(new Event(UNAUTHORIZED_EVENT));
+            setTimeout(() => {
+                isHandlingUnauthorized = false;
+            }, 0);
         }
 
         return Promise.reject(error);
