@@ -130,9 +130,9 @@ function NavigationPage() {
             <header className="portal-hero">
                 <div className="portal-copy">
                     <p className="portal-kicker">Curated Start Page</p>
-                    <h2>记录最常访问的地址，把分散系统和常用页面统一收口。</h2>
+                    <h2>收藏常用网站，<br/>一站式快速访问。</h2>
                     <p className="portal-description">
-                        参考浏览器书签的卡片式导航页，更偏向运维内部系统，可以快速添加常用地址并附上备注信息。
+                        像浏览器书签一样简单好用，管理内部系统和工具平台，让查找更高效。
                     </p>
 
                     <div className="portal-actions">

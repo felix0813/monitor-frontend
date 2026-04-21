@@ -39,10 +39,10 @@
 }
 
 .portal-copy h2 {
-  max-width: 12ch;
+  max-width: 600px;
   margin: 0;
   font-size: clamp(42px, 6vw, 72px);
-  line-height: 1;
+  line-height: 1.15;
   color: #fff7ed;
 }
 
