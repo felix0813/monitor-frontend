@@ -1,69 +1,10 @@
 import {useEffect, useMemo, useState} from 'react';
 import type {FormEvent} from 'react';
 import '../styles/todo.css';
+import todoService from '../services/TodoService';
+import type {TodoProject, TodoItem, TodoStatus} from '../types';
 
-type TodoItem = {
-  id: string;
-  title: string;
-  done: boolean;
-  createdAt: string;
-};
 
-type TodoProject = {
-  id: string;
-  name: string;
-  description: string;
-  todos: TodoItem[];
-  createdAt: string;
-};
-
-const STORAGE_KEY = 'workspace-todo-projects';
-
-const initialProjects: TodoProject[] = [
-  {
-    id: 'starter-monitor',
-    name: '监控首页优化',
-    description: '收敛告警信息展示，补齐筛选与状态聚合。',
-    createdAt: '2026-04-25T00:00:00.000Z',
-    todos: [
-      {
-        id: 'starter-monitor-todo-1',
-        title: '整理首页卡片的优先级和展示顺序',
-        done: false,
-        createdAt: '2026-04-25T00:00:00.000Z',
-      },
-      {
-        id: 'starter-monitor-todo-2',
-        title: '增加监控异常时的醒目标记',
-        done: true,
-        createdAt: '2026-04-25T00:00:00.000Z',
-      },
-    ],
-  },
-];
-
-function createId() {
-  return `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
-}
-
-function readProjects() {
-  const raw = window.localStorage.getItem(STORAGE_KEY);
-  if (!raw) {
-    return initialProjects;
-  }
-
-  try {
-    const parsed = JSON.parse(raw) as TodoProject[];
-    if (!Array.isArray(parsed)) {
-      return initialProjects;
-    }
-
-    return parsed;
-  } catch (error) {
-    console.error('Failed to parse workspace todo projects:', error);
-    return initialProjects;
-  }
-}
 
 function TodoPage() {
   const [projects, setProjects] = useState<TodoProject[]>([]);
@@ -71,21 +12,26 @@ function TodoPage() {
   const [projectName, setProjectName] = useState('');
   const [projectDescription, setProjectDescription] = useState('');
   const [todoDrafts, setTodoDrafts] = useState<Record<string, string>>({});
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const savedProjects = readProjects();
-    setProjects(savedProjects);
-    setActiveProjectId(savedProjects[0]?.id ?? null);
+    loadProjects();
   }, []);
 
-  useEffect(() => {
-    if (projects.length === 0) {
-      window.localStorage.removeItem(STORAGE_KEY);
-      return;
+  const loadProjects = async () => {
+    try {
+      setLoading(true);
+      const loadedProjects = await todoService.listTodoProjects();
+      setProjects(loadedProjects);
+      if (loadedProjects.length > 0 && !activeProjectId) {
+        setActiveProjectId(loadedProjects[0].id);
+      }
+    } catch (error) {
+      console.error('Failed to load todo projects:', error);
+    } finally {
+      setLoading(false);
     }
-
-    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(projects));
-  }, [projects]);
+  };
 
   const activeProject = useMemo(
     () => projects.find((project) => project.id === activeProjectId) ?? projects[0] ?? null,
@@ -93,14 +39,16 @@ function TodoPage() {
   );
 
   const totalTodos = useMemo(
-    () => projects.reduce((count, project) => count + project.todos.length, 0),
+    () => projects.reduce((count, project) => count + Object.keys(project.items).length, 0),
     [projects],
   );
 
   const completedTodos = useMemo(
     () =>
       projects.reduce(
-        (count, project) => count + project.todos.filter((todo) => todo.done).length,
+        (count, project) =>
+          count +
+          Object.values(project.items).filter((item) => item.status === 'done').length,
         0,
       ),
     [projects],
@@ -108,7 +56,7 @@ function TodoPage() {
 
   const pendingTodos = totalTodos - completedTodos;
 
-  const handleAddProject = (event: FormEvent<HTMLFormElement>) => {
+  const handleAddProject = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
     const name = projectName.trim();
@@ -116,86 +64,146 @@ function TodoPage() {
       return;
     }
 
-    const newProject: TodoProject = {
-      id: createId(),
-      name,
-      description: projectDescription.trim(),
-      createdAt: new Date().toISOString(),
-      todos: [],
-    };
-
-    setProjects((current) => [newProject, ...current]);
-    setActiveProjectId(newProject.id);
-    setProjectName('');
-    setProjectDescription('');
+    try {
+      const newProject = await todoService.createTodoProject({
+        name,
+        description: projectDescription.trim(),
+      });
+      setProjects((current) => [newProject, ...current]);
+      setActiveProjectId(newProject.id);
+      setProjectName('');
+      setProjectDescription('');
+    } catch (error) {
+      console.error('Failed to create todo project:', error);
+    }
   };
 
-  const handleDeleteProject = (projectId: string) => {
-    setProjects((current) => {
-      const nextProjects = current.filter((project) => project.id !== projectId);
-      if (projectId === activeProjectId) {
-        setActiveProjectId(nextProjects[0]?.id ?? null);
-      }
-      return nextProjects;
-    });
+  const handleDeleteProject = async (projectId: string) => {
+    try {
+      await todoService.deleteTodoProject(projectId);
+      setProjects((current) => {
+        const nextProjects = current.filter((project) => project.id !== projectId);
+        if (projectId === activeProjectId) {
+          setActiveProjectId(nextProjects[0]?.id ?? null);
+        }
+        return nextProjects;
+      });
 
-    setTodoDrafts((current) => {
-      const nextDrafts = {...current};
-      delete nextDrafts[projectId];
-      return nextDrafts;
-    });
+      setTodoDrafts((current) => {
+        const nextDrafts = {...current};
+        delete nextDrafts[projectId];
+        return nextDrafts;
+      });
+    } catch (error) {
+      console.error('Failed to delete todo project:', error);
+    }
   };
 
-  const handleAddTodo = (projectId: string) => {
+  const handleAddTodo = async (projectId: string) => {
     const title = todoDrafts[projectId]?.trim();
     if (!title) {
       return;
     }
 
-    const newTodo: TodoItem = {
-      id: createId(),
-      title,
-      done: false,
-      createdAt: new Date().toISOString(),
-    };
+    try {
+      const newItem = await todoService.createTodoItem(projectId, {
+        description: title,
+        status: 'pending',
+      });
 
-    setProjects((current) =>
-      current.map((project) =>
-        project.id === projectId
-          ? {...project, todos: [newTodo, ...project.todos]}
-          : project,
-      ),
-    );
+      setProjects((current) =>
+        current.map((project) => {
+          if (project.id !== projectId) {
+            return project;
+          }
+          return {
+            ...project,
+            items: {
+              ...project.items,
+              [newItem.id]: newItem,
+            },
+            ordered_ids: [...project.ordered_ids, newItem.id],
+          };
+        }),
+      );
 
-    setTodoDrafts((current) => ({...current, [projectId]: ''}));
+      setTodoDrafts((current) => ({...current, [projectId]: ''}));
+    } catch (error) {
+      console.error('Failed to create todo item:', error);
+    }
   };
 
-  const handleToggleTodo = (projectId: string, todoId: string) => {
-    setProjects((current) =>
-      current.map((project) => {
-        if (project.id !== projectId) {
-          return project;
-        }
+  const handleToggleTodo = async (projectId: string, todoId: string) => {
+    const project = projects.find((p) => p.id === projectId);
+    if (!project) return;
 
-        return {
-          ...project,
-          todos: project.todos.map((todo) =>
-            todo.id === todoId ? {...todo, done: !todo.done} : todo,
-          ),
-        };
-      }),
-    );
+    const todo = project.items[todoId];
+    if (!todo) return;
+
+    const newStatus: TodoStatus = todo.status === 'done' ? 'pending' : 'done';
+
+    try {
+      const updatedItem = await todoService.updateTodoItem(projectId, todoId, {
+        status: newStatus,
+      });
+
+      setProjects((current) =>
+        current.map((p) => {
+          if (p.id !== projectId) {
+            return p;
+          }
+          return {
+            ...p,
+            items: {
+              ...p.items,
+              [todoId]: updatedItem,
+            },
+          };
+        }),
+      );
+    } catch (error) {
+      console.error('Failed to update todo item:', error);
+    }
   };
 
-  const handleDeleteTodo = (projectId: string, todoId: string) => {
-    setProjects((current) =>
-      current.map((project) =>
-        project.id === projectId
-          ? {...project, todos: project.todos.filter((todo) => todo.id !== todoId)}
-          : project,
-      ),
-    );
+  const handleDeleteTodo = async (projectId: string, todoId: string) => {
+    try {
+      await todoService.deleteTodoItem(projectId, todoId);
+
+      setProjects((current) =>
+        current.map((project) => {
+          if (project.id !== projectId) {
+            return project;
+          }
+          const {[todoId]: _, ...remainingItems} = project.items;
+          return {
+            ...project,
+            items: remainingItems,
+            ordered_ids: project.ordered_ids.filter((id) => id !== todoId),
+          };
+        }),
+      );
+    } catch (error) {
+      console.error('Failed to delete todo item:', error);
+    }
   };
+
+  const getProjectTodoList = (project: TodoProject): TodoItem[] => {
+    return project.ordered_ids
+      .map((id) => project.items[id])
+      .filter(Boolean);
+  };
+
+  if (loading) {
+    return (
+      <section className="todo-page">
+        <div className="dashboard-loading-card">
+          <div className="spinner"/>
+          <p>正在加载待办事项...</p>
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section className="todo-page">
@@ -299,8 +307,9 @@ function TodoPage() {
                 </div>
               ) : (
                 projects.map((project) => {
-                  const doneCount = project.todos.filter((todo) => todo.done).length;
-                  const pendingCount = project.todos.length - doneCount;
+                  const todoList = getProjectTodoList(project);
+                  const doneCount = todoList.filter((todo) => todo.status === 'done').length;
+                  const pendingCount = todoList.length - doneCount;
 
                   return (
                     <article
@@ -323,7 +332,7 @@ function TodoPage() {
                         <p>{project.description || '暂无项目说明，适合先记下需要开发的关键点。'}</p>
                         <div className="todo-project-progress">
                           <span>已完成 {doneCount}</span>
-                          <span>总计 {project.todos.length}</span>
+                          <span>总计 {todoList.length}</span>
                         </div>
                       </button>
 
@@ -350,7 +359,7 @@ function TodoPage() {
             </div>
             {activeProject ? (
               <span className="todo-panel-meta">
-                {activeProject.todos.filter((todo) => !todo.done).length} 项未完成
+                {getProjectTodoList(activeProject).filter((todo) => todo.status !== 'done').length} 项未完成
               </span>
             ) : null}
           </div>
@@ -389,29 +398,29 @@ function TodoPage() {
               </div>
 
               <div className="todo-list">
-                {activeProject.todos.length === 0 ? (
+                {getProjectTodoList(activeProject).length === 0 ? (
                   <div className="todo-empty todo-empty-compact">
                     <h4>这个项目还没有待办</h4>
                     <p>把后续要开发的模块、优化项或联调事项加进来即可。</p>
                   </div>
                 ) : (
-                  activeProject.todos.map((todo) => (
+                  getProjectTodoList(activeProject).map((todo) => (
                     <article
                       key={todo.id}
-                      className={todo.done ? 'todo-item todo-item-done' : 'todo-item'}
+                      className={todo.status === 'done' ? 'todo-item todo-item-done' : 'todo-item'}
                     >
                       <button
                         type="button"
-                        className={todo.done ? 'todo-check todo-check-done' : 'todo-check'}
+                        className={todo.status === 'done' ? 'todo-check todo-check-done' : 'todo-check'}
                         onClick={() => handleToggleTodo(activeProject.id, todo.id)}
-                        aria-label={todo.done ? '标记为未完成' : '标记为已完成'}
+                        aria-label={todo.status === 'done' ? '标记为未完成' : '标记为已完成'}
                       >
-                        {todo.done ? '已完成' : '进行中'}
+                        {todo.status === 'done' ? '已完成' : '进行中'}
                       </button>
 
                       <div className="todo-copy">
-                        <h4>{todo.title}</h4>
-                        <p>{todo.done ? '该事项已完成。' : '待开发或待确认。'}</p>
+                        <h4>{todo.description}</h4>
+                        <p>{todo.status === 'done' ? '该事项已完成。' : '待开发或待确认。'}</p>
                       </div>
 
                       <button

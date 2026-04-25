@@ -48,3 +48,43 @@ export interface UpdateNavigationSiteRequest {
     description?: string;
     tags?: string[];
 }
+
+export type TodoStatus = 'pending' | 'done';
+
+export interface TodoItem {
+    id: string;
+    description: string;
+    status: TodoStatus;
+    created_at: string;
+    updated_at: string;
+}
+
+export interface TodoProject {
+    id: string;
+    name: string;
+    description: string;
+    ordered_ids: string[];
+    items: Record<string, TodoItem>;
+    created_at: string;
+    updated_at: string;
+}
+
+export interface CreateTodoProjectRequest {
+    name: string;
+    description: string;
+}
+
+export interface UpdateTodoProjectRequest {
+    name?: string;
+    description?: string;
+}
+
+export interface CreateTodoItemRequest {
+    description: string;
+    status?: TodoStatus;
+}
+
+export interface UpdateTodoItemRequest {
+    description?: string;
+    status?: TodoStatus;
+}
