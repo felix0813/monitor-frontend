@@ -1,0 +1,361 @@
+.todo-page {
+  display: grid;
+  gap: 24px;
+}
+
+.todo-hero,
+.todo-panel {
+  border-radius: 30px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(22, 20, 20, 0.72);
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.2);
+  backdrop-filter: blur(18px);
+}
+
+.todo-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(320px, 0.9fr);
+  gap: 22px;
+  padding: 32px;
+}
+
+.todo-kicker,
+.todo-panel-kicker {
+  margin: 0 0 10px;
+  font-size: 12px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: rgba(255, 237, 213, 0.64);
+}
+
+.todo-hero-copy h2,
+.todo-panel-head h3 {
+  margin: 0;
+  color: #fff7ed;
+}
+
+.todo-hero-copy h2 {
+  font-size: clamp(34px, 5vw, 46px);
+}
+
+.todo-description,
+.todo-focus-description,
+.todo-overview-text,
+.todo-project-main p,
+.todo-empty p,
+.todo-copy p {
+  margin: 0;
+  color: rgba(255, 244, 230, 0.76);
+  line-height: 1.75;
+}
+
+.todo-description {
+  margin-top: 14px;
+  max-width: 56ch;
+}
+
+.todo-hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 24px;
+}
+
+.todo-primary-action,
+.todo-secondary-action,
+.todo-submit-button,
+.todo-delete-button,
+.todo-check {
+  min-height: 46px;
+  padding: 0 18px;
+  border-radius: 999px;
+  border: 1px solid transparent;
+  transition: 180ms ease;
+}
+
+.todo-primary-action,
+.todo-submit-button {
+  background: linear-gradient(135deg, #f97316, #fb7185);
+  color: #fff7ed;
+}
+
+.todo-secondary-action,
+.todo-delete-button,
+.todo-check {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.08);
+  color: #fff7ed;
+}
+
+.todo-primary-action,
+.todo-secondary-action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.todo-primary-action:hover,
+.todo-secondary-action:hover,
+.todo-submit-button:hover,
+.todo-delete-button:hover,
+.todo-check:hover,
+.todo-project-main:hover {
+  transform: translateY(-1px);
+}
+
+.todo-overview-card {
+  position: relative;
+  overflow: hidden;
+  padding: 24px;
+  border-radius: 26px;
+  background:
+    radial-gradient(circle at top right, rgba(20, 184, 166, 0.18), transparent 34%),
+    linear-gradient(180deg, rgba(249, 115, 22, 0.12), rgba(255, 255, 255, 0.02));
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.todo-overview-heading {
+  display: grid;
+  gap: 10px;
+}
+
+.todo-overview-heading strong {
+  font-size: 24px;
+  color: #fff7ed;
+}
+
+.todo-overview-badge,
+.todo-panel-meta,
+.todo-project-title-row span,
+.todo-project-progress span {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  min-height: 34px;
+  padding: 0 14px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 244, 230, 0.86);
+}
+
+.todo-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 24px;
+}
+
+.todo-stats-grid article {
+  padding: 18px;
+  border-radius: 22px;
+  background: rgba(10, 10, 10, 0.18);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.todo-stats-grid span {
+  display: block;
+  font-size: 13px;
+  color: rgba(255, 237, 213, 0.72);
+}
+
+.todo-stats-grid strong {
+  display: block;
+  margin-top: 8px;
+  font-size: 30px;
+  color: #fff7ed;
+}
+
+.todo-overview-text {
+  margin-top: 18px;
+}
+
+.todo-content-grid {
+  display: grid;
+  grid-template-columns: minmax(320px, 420px) minmax(0, 1fr);
+  gap: 24px;
+  align-items: start;
+}
+
+.todo-column {
+  display: grid;
+  gap: 24px;
+}
+
+.todo-panel {
+  padding: 28px;
+}
+
+.todo-panel-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  align-items: flex-start;
+  margin-bottom: 20px;
+}
+
+.todo-form,
+.todo-project-list,
+.todo-list {
+  display: grid;
+  gap: 16px;
+}
+
+.todo-form label {
+  display: grid;
+  gap: 8px;
+  color: rgba(255, 244, 230, 0.86);
+}
+
+.todo-form input,
+.todo-form textarea,
+.todo-composer input {
+  width: 100%;
+  border-radius: 18px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.04);
+  color: #fff7ed;
+  padding: 14px 16px;
+  outline: none;
+}
+
+.todo-form textarea {
+  resize: vertical;
+}
+
+.todo-project-card,
+.todo-item {
+  display: grid;
+  gap: 14px;
+  padding: 18px;
+  border-radius: 24px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.todo-project-card-active {
+  border-color: rgba(249, 115, 22, 0.4);
+  box-shadow: inset 0 0 0 1px rgba(249, 115, 22, 0.18);
+}
+
+.todo-project-main {
+  padding: 0;
+  border: none;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+  transition: 180ms ease;
+}
+
+.todo-project-title-row,
+.todo-project-progress,
+.todo-composer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+}
+
+.todo-project-title-row {
+  justify-content: space-between;
+}
+
+.todo-project-title-row h4,
+.todo-empty h4,
+.todo-copy h4 {
+  margin: 0;
+  color: #fff7ed;
+}
+
+.todo-project-main p {
+  margin-top: 12px;
+}
+
+.todo-project-progress {
+  margin-top: 14px;
+}
+
+.todo-composer {
+  margin-bottom: 18px;
+}
+
+.todo-composer input {
+  flex: 1;
+  min-width: 220px;
+}
+
+.todo-item {
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+}
+
+.todo-check {
+  cursor: pointer;
+}
+
+.todo-check-done {
+  background: rgba(20, 184, 166, 0.18);
+  border-color: rgba(20, 184, 166, 0.24);
+  color: #99f6e4;
+}
+
+.todo-item-done {
+  border-color: rgba(20, 184, 166, 0.18);
+}
+
+.todo-item-done .todo-copy h4 {
+  color: rgba(255, 244, 230, 0.64);
+  text-decoration: line-through;
+}
+
+.todo-delete-button {
+  cursor: pointer;
+}
+
+.todo-delete-button-subtle {
+  min-height: 40px;
+}
+
+.todo-empty {
+  padding: 28px;
+  border-radius: 24px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px dashed rgba(255, 255, 255, 0.12);
+}
+
+.todo-empty-compact {
+  padding: 24px;
+}
+
+@media (max-width: 1080px) {
+  .todo-hero,
+  .todo-content-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 720px) {
+  .todo-hero,
+  .todo-panel {
+    padding: 24px;
+  }
+
+  .todo-stats-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .todo-panel-head,
+  .todo-item {
+    grid-template-columns: 1fr;
+  }
+
+  .todo-item {
+    align-items: stretch;
+  }
+
+  .todo-delete-button,
+  .todo-check,
+  .todo-submit-button {
+    width: 100%;
+    justify-content: center;
+  }
+}

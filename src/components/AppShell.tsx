@@ -1,11 +1,11 @@
-import { NavLink, Outlet, useNavigate } from 'react-router-dom';
+import {NavLink, Outlet, useNavigate} from 'react-router-dom';
 import authService from '../services/AuthService';
 import '../styles/shell.css';
 
 const navItems = [
-  { to: '/', label: '导航页' },
-  { to: '/monitor', label: '监控页' },
-  { to: '/workspace', label: '工作台' },
+  {to: '/', label: '导航页'},
+  {to: '/monitor', label: '监控页'},
+  {to: '/workspace', label: '工作台'},
 ];
 
 function AppShell() {
@@ -13,7 +13,7 @@ function AppShell() {
 
   const handleLogout = () => {
     authService.logout();
-    navigate('/login', { replace: true });
+    navigate('/login', {replace: true});
   };
 
   return (
@@ -36,7 +36,7 @@ function AppShell() {
               key={item.to}
               to={item.to}
               end={item.to === '/'}
-              className={({ isActive }) =>
+              className={({isActive}) =>
                 isActive ? 'shell-nav-link shell-nav-link-active' : 'shell-nav-link'
               }
             >

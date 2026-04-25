@@ -6,7 +6,8 @@ import {UNAUTHORIZED_EVENT} from './constants/auth';
 import LoginPage from './pages/LoginPage';
 import MonitorDashboard from './pages/MonitorDashboard';
 import NavigationPage from './pages/NavigationPage';
-import ComingSoonPage from './pages/ComingSoonPage';
+import TodoPage from './pages/TodoPage';
+import WorkspacePage from './pages/WorkspacePage';
 import authService from './services/AuthService';
 import './App.css';
 
@@ -14,6 +15,7 @@ const routeTitleMap: Record<string, string> = {
   '/': '导航页',
   '/monitor': '监控页',
   '/workspace': '工作台',
+  '/todo': '项目 Todo',
   '/login': '登录',
 };
 
@@ -52,15 +54,8 @@ function App() {
           <Route element={<AppShell />}>
             <Route index element={<NavigationPage />} />
             <Route path="/monitor" element={<MonitorDashboard />} />
-            <Route
-              path="/workspace"
-              element={
-                <ComingSoonPage
-                    title="工作台"
-                    description="功能预览即将开放，敬请期待。路由已经就位，后续开发时直接在此扩展即可。"
-                />
-              }
-            />
+            <Route path="/workspace" element={<WorkspacePage />} />
+            <Route path="/todo" element={<TodoPage />} />
           </Route>
         </Route>
 
