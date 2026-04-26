@@ -1,11 +1,21 @@
-import {useMemo, useState} from 'react';
+import {useEffect, useMemo, useState} from 'react';
 import '../styles/command.css';
+
+type ApiCommandTemplate = {
+  id?: string;
+  _id?: string;
+  name: string;
+  description?: string;
+  content: string;
+  variables?: string[];
+};
 
 type CommandTemplate = {
   id: string;
   name: string;
   description?: string;
   content: string;
+  variables?: string[];
 };
 
 type ExecuteResponse = {
@@ -13,27 +23,6 @@ type ExecuteResponse = {
   output?: string;
   error?: string;
 };
-
-const templates: CommandTemplate[] = [
-  {
-    id: '1',
-    name: '查看日志',
-    description: '按关键字筛选最近日志，适合快速定位线上问题。',
-    content: "tail -n {{lines}} /var/log/{{fileName}} | grep '{{keyword}}'",
-  },
-  {
-    id: '2',
-    name: '重启服务',
-    description: '重启指定服务，并立即查看当前运行状态。',
-    content: 'systemctl restart {{serviceName}} && systemctl status {{serviceName}}',
-  },
-  {
-    id: '3',
-    name: '发布命令',
-    description: '进入项目目录后拉取代码、安装依赖并执行构建。',
-    content: 'cd {{projectPath}} && git pull && npm install && npm run build',
-  },
-];
 
 const variablePattern = /{{\s*([a-zA-Z0-9_-\u4e00-\u9fa5]+)\s*}}/g;
 
@@ -74,22 +63,80 @@ async function executeCommand(command: string): Promise<ExecuteResponse> {
   return response.json();
 }
 
+function normalizeTemplate(template: ApiCommandTemplate): CommandTemplate {
+  return {
+    id: template.id || template._id || '',
+    name: template.name,
+    description: template.description,
+    content: template.content,
+    variables: template.variables,
+  };
+}
+
 function CommandPage() {
+  const [templates, setTemplates] = useState<CommandTemplate[]>([]);
+  const [loadingTemplates, setLoadingTemplates] = useState(false);
+  const [templateError, setTemplateError] = useState('');
+
   const [selectedTemplate, setSelectedTemplate] = useState<CommandTemplate | null>(null);
   const [mode, setMode] = useState<'edit' | 'vars' | null>(null);
   const [showModeDialog, setShowModeDialog] = useState(false);
+
+  const [showTemplateModal, setShowTemplateModal] = useState(false);
+  const [modalMode, setModalMode] = useState<'create' | 'edit'>('create');
+  const [savingTemplate, setSavingTemplate] = useState(false);
+  const [templateFormError, setTemplateFormError] = useState('');
+  const [templateForm, setTemplateForm] = useState({name: '', content: ''});
+
+  const [deletingTemplateId, setDeletingTemplateId] = useState('');
+
   const [editorValue, setEditorValue] = useState('');
   const [variableValues, setVariableValues] = useState<Record<string, string>>({});
   const [executing, setExecuting] = useState(false);
   const [executeResult, setExecuteResult] = useState('');
   const [executeError, setExecuteError] = useState('');
 
+  const loadTemplates = async () => {
+    setLoadingTemplates(true);
+    setTemplateError('');
+
+    try {
+      const response = await fetch('/api/command-templates');
+      if (!response.ok) {
+        throw new Error(`获取模板失败: ${response.status}`);
+      }
+
+      const data: ApiCommandTemplate[] = await response.json();
+      const normalized = data
+        .map(normalizeTemplate)
+        .filter((item) => item.id && item.name && item.content);
+      setTemplates(normalized);
+
+      setSelectedTemplate((current) => {
+        if (!current) {
+          return null;
+        }
+        return normalized.find((item) => item.id === current.id) || null;
+      });
+    } catch (error) {
+      setTemplateError(error instanceof Error ? error.message : '获取模板失败');
+    } finally {
+      setLoadingTemplates(false);
+    }
+  };
+
+  useEffect(() => {
+    loadTemplates();
+  }, []);
+
   const variableKeys = useMemo(() => {
     if (!selectedTemplate) {
       return [];
     }
 
-    return extractVariables(selectedTemplate.content);
+    return selectedTemplate.variables?.length
+      ? selectedTemplate.variables
+      : extractVariables(selectedTemplate.content);
   }, [selectedTemplate]);
 
   const generatedCommand = useMemo(() => {
@@ -116,6 +163,111 @@ function CommandPage() {
     setShowModeDialog(true);
   };
 
+  const openCreateModal = () => {
+    setModalMode('create');
+    setTemplateForm({name: '', content: ''});
+    setTemplateFormError('');
+    setShowTemplateModal(true);
+  };
+
+  const openEditModal = (template: CommandTemplate) => {
+    setModalMode('edit');
+    setTemplateForm({name: template.name, content: template.content});
+    setTemplateFormError('');
+    setSelectedTemplate(template);
+    setShowTemplateModal(true);
+  };
+
+  const closeTemplateModal = () => {
+    if (savingTemplate) {
+      return;
+    }
+    setShowTemplateModal(false);
+  };
+
+  const handleSaveTemplate = async () => {
+    const payload = {
+      name: templateForm.name.trim(),
+      content: templateForm.content.trim(),
+    };
+
+    if (!payload.name || !payload.content) {
+      setTemplateFormError('模板名称和内容不能为空');
+      return;
+    }
+
+    setSavingTemplate(true);
+    setTemplateFormError('');
+
+    try {
+      if (modalMode === 'create') {
+        const response = await fetch('/api/command-templates', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify(payload),
+        });
+
+        if (!response.ok) {
+          throw new Error(`新增模板失败: ${response.status}`);
+        }
+      } else {
+        if (!selectedTemplate) {
+          throw new Error('未选择需要编辑的模板');
+        }
+
+        const response = await fetch(`/api/command-templates/${selectedTemplate.id}`, {
+          method: 'PUT',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify(payload),
+        });
+
+        if (!response.ok) {
+          throw new Error(`更新模板失败: ${response.status}`);
+        }
+      }
+
+      await loadTemplates();
+      setShowTemplateModal(false);
+    } catch (error) {
+      setTemplateFormError(error instanceof Error ? error.message : '模板保存失败');
+    } finally {
+      setSavingTemplate(false);
+    }
+  };
+
+  const handleDeleteTemplate = async (template: CommandTemplate) => {
+    if (!window.confirm(`确认删除模板「${template.name}」吗？`)) {
+      return;
+    }
+
+    setDeletingTemplateId(template.id);
+    setTemplateError('');
+
+    try {
+      const response = await fetch(`/api/command-templates/${template.id}`, {
+        method: 'DELETE',
+      });
+
+      if (!response.ok) {
+        throw new Error(`删除模板失败: ${response.status}`);
+      }
+
+      if (selectedTemplate?.id === template.id) {
+        setSelectedTemplate(null);
+        setMode(null);
+        setEditorValue('');
+        setVariableValues({});
+        resetExecutionState();
+      }
+
+      await loadTemplates();
+    } catch (error) {
+      setTemplateError(error instanceof Error ? error.message : '删除模板失败');
+    } finally {
+      setDeletingTemplateId('');
+    }
+  };
+
   const handleChooseEdit = () => {
     if (!selectedTemplate) {
       return;
@@ -132,13 +284,10 @@ function CommandPage() {
       return;
     }
 
-    const initialValues = extractVariables(selectedTemplate.content).reduce<Record<string, string>>(
-      (result, key) => {
-        result[key] = '';
-        return result;
-      },
-      {},
-    );
+    const initialValues = variableKeys.reduce<Record<string, string>>((result, key) => {
+      result[key] = '';
+      return result;
+    }, {});
 
     setMode('vars');
     setVariableValues(initialValues);
@@ -189,14 +338,6 @@ function CommandPage() {
           </p>
 
           <div className="command-hero-actions">
-            <button
-              type="button"
-              className="command-primary-button"
-              onClick={handleExecute}
-              disabled={executing || !finalCommand.trim()}
-            >
-              {executing ? '执行中...' : '执行命令'}
-            </button>
             <span className="command-hero-hint">
               {selectedTemplate ? `当前模板：${selectedTemplate.name}` : '先选择左侧模板开始操作'}
             </span>
@@ -206,7 +347,7 @@ function CommandPage() {
         <div className="command-summary-card">
           <span className="command-summary-badge">Command</span>
           <strong>{templates.length}</strong>
-          <p>当前内置 {templates.length} 个常用命令模板，覆盖日志查询、服务重启和基础发布场景。</p>
+          <p>当前共有 {templates.length} 个命令模板，可用于日志查询、服务重启或自定义发布场景。</p>
 
           <div className="command-summary-meta">
             <span>{mode === 'edit' ? '直接编辑' : mode === 'vars' ? '变量填充' : '待选择模式'}</span>
@@ -222,30 +363,67 @@ function CommandPage() {
               <p className="command-panel-kicker">Template List</p>
               <h3>命令模板</h3>
             </div>
-            <span className="command-panel-meta">{templates.length} 个模板</span>
+            <div className="command-sidebar-head-actions">
+              <span className="command-panel-meta">{templates.length} 个模板</span>
+              <button type="button" className="command-secondary-button" onClick={openCreateModal}>
+                新增模板
+              </button>
+            </div>
           </div>
 
-          <div className="command-template-list">
-            {templates.map((template) => (
-              <button
-                key={template.id}
-                type="button"
-                className={
-                  selectedTemplate?.id === template.id
-                    ? 'command-template-card command-template-card-active'
-                    : 'command-template-card'
-                }
-                onClick={() => handleTemplateClick(template)}
-              >
-                <div className="command-template-card-top">
-                  <h4>{template.name}</h4>
-                  <span>{extractVariables(template.content).length} 个变量</span>
+          {templateError ? <p className="command-inline-error">{templateError}</p> : null}
+
+          {loadingTemplates ? (
+            <div className="command-inline-empty">
+              <p>模板加载中...</p>
+            </div>
+          ) : (
+            <div className="command-template-list">
+              {templates.map((template) => (
+                <div
+                  key={template.id}
+                  className={
+                    selectedTemplate?.id === template.id
+                      ? 'command-template-card command-template-card-active'
+                      : 'command-template-card'
+                  }
+                >
+                  <button type="button" className="command-template-select" onClick={() => handleTemplateClick(template)}>
+                    <div className="command-template-card-top">
+                      <h4>{template.name}</h4>
+                      <span>{extractVariables(template.content).length} 个变量</span>
+                    </div>
+                    <p>{template.description || '暂无模板说明。'}</p>
+                    <code>{template.content}</code>
+                  </button>
+
+                  <div className="command-template-card-actions">
+                    <button
+                      type="button"
+                      className="command-secondary-button"
+                      onClick={() => openEditModal(template)}
+                    >
+                      编辑
+                    </button>
+                    <button
+                      type="button"
+                      className="command-secondary-button"
+                      onClick={() => handleDeleteTemplate(template)}
+                      disabled={deletingTemplateId === template.id}
+                    >
+                      {deletingTemplateId === template.id ? '删除中...' : '删除'}
+                    </button>
+                  </div>
                 </div>
-                <p>{template.description || '暂无模板说明。'}</p>
-                <code>{template.content}</code>
-              </button>
-            ))}
-          </div>
+              ))}
+
+              {templates.length === 0 ? (
+                <div className="command-inline-empty">
+                  <p>暂无模板，请点击“新增模板”创建。</p>
+                </div>
+              ) : null}
+            </div>
+          )}
         </aside>
 
         <div className="command-main-column">
@@ -324,6 +502,14 @@ function CommandPage() {
                     <p className="command-panel-kicker">Final Command</p>
                     <h3>最终命令预览</h3>
                   </div>
+                  <button
+                    type="button"
+                    className="command-primary-button"
+                    onClick={handleExecute}
+                    disabled={executing || !finalCommand.trim()}
+                  >
+                    {executing ? '执行中...' : '执行命令'}
+                  </button>
                 </div>
 
                 <pre className="command-preview-box">{finalCommand || '当前还没有可执行命令。'}</pre>
@@ -331,7 +517,7 @@ function CommandPage() {
             </>
           )}
 
-          {(executeResult || executeError) ? (
+          {executeResult || executeError ? (
             <section className="command-panel">
               <div className="command-panel-head">
                 <div>
@@ -355,8 +541,8 @@ function CommandPage() {
       </section>
 
       {showModeDialog && selectedTemplate ? (
-        <div className="command-modal" onClick={() => setShowModeDialog(false)}>
-          <div className="command-modal-panel" onClick={(event) => event.stopPropagation()}>
+        <div className="command-modal" role="dialog" aria-modal="true">
+          <div className="command-modal-panel">
             <div className="command-modal-header">
               <div>
                 <p>Choose Mode</p>
@@ -381,6 +567,62 @@ function CommandPage() {
               </button>
               <button type="button" className="command-primary-button" onClick={handleChooseVars}>
                 填写变量
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
+
+      {showTemplateModal ? (
+        <div className="command-modal" role="dialog" aria-modal="true">
+          <div className="command-modal-panel">
+            <div className="command-modal-header">
+              <div>
+                <p>Template Editor</p>
+                <h3>{modalMode === 'create' ? '新增命令模板' : '编辑命令模板'}</h3>
+              </div>
+              <button
+                type="button"
+                className="command-secondary-button"
+                onClick={closeTemplateModal}
+                disabled={savingTemplate}
+              >
+                关闭
+              </button>
+            </div>
+
+            <div className="command-editor-section">
+              <label className="command-field">
+                模板名称
+                <input
+                  className="command-text-input"
+                  value={templateForm.name}
+                  onChange={(event) => setTemplateForm((current) => ({...current, name: event.target.value}))}
+                  placeholder="请输入模板名称"
+                />
+              </label>
+
+              <label className="command-field">
+                模板命令
+                <textarea
+                  className="command-code-editor"
+                  value={templateForm.content}
+                  onChange={(event) => setTemplateForm((current) => ({...current, content: event.target.value}))}
+                  placeholder="例如: tail -n {{lines}} /var/log/{{fileName}}"
+                />
+              </label>
+
+              {templateFormError ? <p className="command-inline-error">{templateFormError}</p> : null}
+            </div>
+
+            <div className="command-modal-actions">
+              <button
+                type="button"
+                className="command-primary-button"
+                onClick={handleSaveTemplate}
+                disabled={savingTemplate}
+              >
+                {savingTemplate ? '保存中...' : '保存模板'}
               </button>
             </div>
           </div>
