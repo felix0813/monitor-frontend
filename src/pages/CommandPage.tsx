@@ -1,14 +1,7 @@
 import {useEffect, useMemo, useState} from 'react';
 import '../styles/command.css';
-
-type ApiCommandTemplate = {
-  id?: string;
-  _id?: string;
-  name: string;
-  description?: string;
-  content: string;
-  variables?: string[];
-};
+import commandService from '../services/CommandService';
+import type {CommandTemplate as ApiCommandTemplate} from '../types';
 
 type CommandTemplate = {
   id: string;
@@ -16,12 +9,6 @@ type CommandTemplate = {
   description?: string;
   content: string;
   variables?: string[];
-};
-
-type ExecuteResponse = {
-  success: boolean;
-  output?: string;
-  error?: string;
 };
 
 const variablePattern = /{{\s*([a-zA-Z0-9_-\u4e00-\u9fa5]+)\s*}}/g;
@@ -42,25 +29,6 @@ function extractVariables(template: string) {
 
 function buildCommand(template: string, values: Record<string, string>) {
   return template.replace(variablePattern, (_, key: string) => values[key] ?? '');
-}
-
-async function executeCommand(command: string): Promise<ExecuteResponse> {
-  const response = await fetch('/api/command/execute', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({command}),
-  });
-
-  if (!response.ok) {
-    return {
-      success: false,
-      error: `请求失败: ${response.status}`,
-    };
-  }
-
-  return response.json();
 }
 
 function normalizeTemplate(template: ApiCommandTemplate): CommandTemplate {
@@ -101,12 +69,7 @@ function CommandPage() {
     setTemplateError('');
 
     try {
-      const response = await fetch('/api/command-templates');
-      if (!response.ok) {
-        throw new Error(`获取模板失败: ${response.status}`);
-      }
-
-      const data: ApiCommandTemplate[] = await response.json();
+      const data = await commandService.listCommandTemplates();
       const normalized = data
         .map(normalizeTemplate)
         .filter((item) => item.id && item.name && item.content);
@@ -201,29 +164,13 @@ function CommandPage() {
 
     try {
       if (modalMode === 'create') {
-        const response = await fetch('/api/command-templates', {
-          method: 'POST',
-          headers: {'Content-Type': 'application/json'},
-          body: JSON.stringify(payload),
-        });
-
-        if (!response.ok) {
-          throw new Error(`新增模板失败: ${response.status}`);
-        }
+        await commandService.createCommandTemplate(payload);
       } else {
         if (!selectedTemplate) {
           throw new Error('未选择需要编辑的模板');
         }
 
-        const response = await fetch(`/api/command-templates/${selectedTemplate.id}`, {
-          method: 'PUT',
-          headers: {'Content-Type': 'application/json'},
-          body: JSON.stringify(payload),
-        });
-
-        if (!response.ok) {
-          throw new Error(`更新模板失败: ${response.status}`);
-        }
+        await commandService.updateCommandTemplate(selectedTemplate.id, payload);
       }
 
       await loadTemplates();
@@ -244,13 +191,7 @@ function CommandPage() {
     setTemplateError('');
 
     try {
-      const response = await fetch(`/api/command-templates/${template.id}`, {
-        method: 'DELETE',
-      });
-
-      if (!response.ok) {
-        throw new Error(`删除模板失败: ${response.status}`);
-      }
+      await commandService.deleteCommandTemplate(template.id);
 
       if (selectedTemplate?.id === template.id) {
         setSelectedTemplate(null);
@@ -313,7 +254,7 @@ function CommandPage() {
     resetExecutionState();
 
     try {
-      const result = await executeCommand(finalCommand);
+      const result = await commandService.executeCommand(finalCommand);
       if (result.success) {
         setExecuteResult(result.output || '执行成功');
         return;

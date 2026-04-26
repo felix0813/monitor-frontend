@@ -88,3 +88,23 @@ export interface UpdateTodoItemRequest {
     description?: string;
     status?: TodoStatus;
 }
+
+export interface CommandTemplate {
+    id?: string;
+    _id?: string;
+    name: string;
+    description?: string;
+    content: string;
+    variables?: string[];
+}
+
+export interface CommandTemplatePayload {
+    name: string;
+    content: string;
+}
+
+export interface ExecuteCommandResponse {
+    success: boolean;
+    output?: string;
+    error?: string;
+}
