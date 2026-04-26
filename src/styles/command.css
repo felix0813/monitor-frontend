@@ -63,6 +63,19 @@
   text-overflow: ellipsis;
 }
 
+.command-template-card code {
+  display: block;
+  padding: 14px;
+  border-radius: 18px;
+  background: rgba(6, 6, 6, 0.2);
+  color: rgba(255, 244, 230, 0.86);
+  white-space: pre-wrap;
+  word-break: break-word;
+  max-height: 5.5em;
+  overflow: hidden;
+  line-height: 1.5;
+}
+
 .command-description {
   margin-top: 14px;
   max-width: 58ch;
