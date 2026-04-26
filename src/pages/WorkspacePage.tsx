@@ -36,14 +36,16 @@ function WorkspacePage() {
           <p className="workspace-hub-kicker">Workspace Entry</p>
           <h2>工作台功能入口</h2>
           <p className="workspace-hub-description">
-            这里作为工作台首页，用来承载多个内部功能入口。当前已接入项目 Todo，后续可以继续扩展文档、发布、协作等模块。
+            内部功能入口<br/>
+            - TODO<br/>
+            - 快捷命令
           </p>
         </div>
 
         <div className="workspace-hub-summary">
           <span className="workspace-hub-summary-badge">Workspace</span>
           <strong>统一入口</strong>
-          <p>先聚合常用能力，再逐步扩展成完整工作台，保持结构清晰，避免单个页面职责过重。</p>
+          <p>聚合常用能力,轻松管理项目、服务器</p>
         </div>
       </header>
 
