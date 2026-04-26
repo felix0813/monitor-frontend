@@ -40,7 +40,7 @@ class CommandService {
 
   async executeCommand(command: string): Promise<ExecuteCommandResponse> {
     const response = await axios.post(
-      '/api/command/execute',
+      '/api/command',
       {command},
       {headers: this.getAuthHeader()},
     );
