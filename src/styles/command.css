@@ -360,6 +360,48 @@
   margin-top: 24px;
 }
 
+
+
+.command-sidebar-head-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.command-template-select {
+  all: unset;
+  display: grid;
+  gap: 14px;
+  cursor: pointer;
+}
+
+.command-template-card-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+}
+
+.command-inline-error {
+  margin: 0;
+  color: #fecaca;
+  background: rgba(248, 113, 113, 0.12);
+  border: 1px solid rgba(248, 113, 113, 0.28);
+  border-radius: 16px;
+  padding: 12px 14px;
+}
+
+.command-text-input {
+  width: 100%;
+  min-height: 46px;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.04);
+  color: #fff7ed;
+  padding: 0 14px;
+  outline: none;
+  box-sizing: border-box;
+}
 @media (max-width: 1080px) {
   .command-hero,
   .command-content-grid {
