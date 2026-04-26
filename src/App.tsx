@@ -3,20 +3,21 @@ import {Navigate, Route, Routes, useLocation, useNavigate} from 'react-router-do
 import AppShell from './components/AppShell';
 import ProtectedRoute from './components/ProtectedRoute';
 import {UNAUTHORIZED_EVENT} from './constants/auth';
+import authService from './services/AuthService';
 import LoginPage from './pages/LoginPage';
 import MonitorDashboard from './pages/MonitorDashboard';
 import NavigationPage from './pages/NavigationPage';
 import TodoPage from './pages/TodoPage';
 import WorkspacePage from './pages/WorkspacePage';
-import authService from './services/AuthService';
+import CommandPage from './pages/CommandPage';
 import './App.css';
-import CommandPage from "./pages/CommandPage.tsx";
 
 const routeTitleMap: Record<string, string> = {
   '/': '导航页',
   '/monitor': '监控页',
   '/workspace': '工作台',
   '/todo': '项目 Todo',
+  '/command': '快捷命令',
   '/login': '登录',
 };
 
@@ -57,7 +58,7 @@ function App() {
             <Route path="/monitor" element={<MonitorDashboard />} />
             <Route path="/workspace" element={<WorkspacePage />} />
             <Route path="/todo" element={<TodoPage />} />
-            <Route path="/command" element={<CommandPage/>}/>
+            <Route path="/command" element={<CommandPage />} />
           </Route>
         </Route>
 
