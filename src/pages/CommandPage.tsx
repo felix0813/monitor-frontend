@@ -332,13 +332,12 @@ function CommandPage() {
                   <button type="button" className="command-template-select" onClick={() => handleTemplateClick(template)}>
                     <div className="command-template-card-top">
                       <h4>{template.name}</h4>
-                      <span>{extractVariables(template.content).length} 个变量</span>
+
                     </div>
-                    <p>{template.description || '暂无模板说明。'}</p>
-                    <code>{template.content}</code>
                   </button>
 
                   <div className="command-template-card-actions">
+                    <span>{extractVariables(template.content).length} 个变量</span>
                     <button
                       type="button"
                       className="command-secondary-button"
