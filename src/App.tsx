@@ -10,6 +10,7 @@ import TodoPage from './pages/TodoPage';
 import WorkspacePage from './pages/WorkspacePage';
 import authService from './services/AuthService';
 import './App.css';
+import CommandPage from "./pages/CommandPage.tsx";
 
 const routeTitleMap: Record<string, string> = {
   '/': '导航页',
@@ -56,6 +57,7 @@ function App() {
             <Route path="/monitor" element={<MonitorDashboard />} />
             <Route path="/workspace" element={<WorkspacePage />} />
             <Route path="/todo" element={<TodoPage />} />
+            <Route path="/command" element={<CommandPage/>}/>
           </Route>
         </Route>
 

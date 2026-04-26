@@ -11,12 +11,12 @@ const features = [
     available: true,
   },
   {
-    title: '文档清单',
-    label: 'Docs',
-    description: '后续可用于归档需求文档、接口说明和发布记录，方便在工作台内统一查找。',
-    to: '/workspace',
-    actionText: '敬请期待',
-    available: false,
+    title: '快捷命令',
+    label: 'Command',
+    description: '使用和编辑命令模板，快速执行服务器命令。',
+    to: '/command',
+    actionText: '进入 快捷命令',
+    available: true,
   },
   {
     title: '发布检查',
