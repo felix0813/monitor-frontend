@@ -108,3 +108,31 @@ export interface ExecuteCommandResponse {
     output?: string;
     error?: string;
 }
+
+export interface CodeProject {
+    id: string;
+    project_name: string;
+    code_url: string;
+    pipeline_url: string;
+    deploy_url: string;
+    data_url: string;
+    created_at: string;
+    updated_at: string;
+}
+
+export interface CreateCodeProjectRequest {
+    project_name: string;
+    code_url: string;
+    pipeline_url?: string;
+    deploy_url?: string;
+    data_url?: string;
+}
+
+export interface UpdateCodeProjectRequest {
+    project_name?: string;
+    code_url?: string;
+    pipeline_url?: string;
+    deploy_url?: string;
+    data_url?: string;
+}
+

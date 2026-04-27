@@ -10,6 +10,7 @@ import NavigationPage from './pages/NavigationPage';
 import TodoPage from './pages/TodoPage';
 import WorkspacePage from './pages/WorkspacePage';
 import CommandPage from './pages/CommandPage';
+import CodeProjectPage from './pages/CodeProjectPage';
 import './App.css';
 
 const routeTitleMap: Record<string, string> = {
@@ -18,6 +19,7 @@ const routeTitleMap: Record<string, string> = {
   '/workspace': '工作台',
   '/todo': '项目 Todo',
   '/command': '快捷命令',
+  '/code-projects': '项目记录',
   '/login': '登录',
 };
 
@@ -59,6 +61,7 @@ function App() {
             <Route path="/workspace" element={<WorkspacePage />} />
             <Route path="/todo" element={<TodoPage />} />
             <Route path="/command" element={<CommandPage />} />
+            <Route path="/code-projects" element={<CodeProjectPage />} />
           </Route>
         </Route>
 
