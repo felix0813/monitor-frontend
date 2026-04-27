@@ -19,6 +19,14 @@ const features = [
     available: true,
   },
   {
+    title: '项目记录',
+    label: 'Record',
+    description: '集中维护项目代码、流水线、部署和数据地址，便于协作和追踪。',
+    to: '/code-projects',
+    actionText: '进入 项目记录',
+    available: true,
+  },
+  {
     title: '发布检查',
     label: 'Launch',
     description: '后续可加入上线前核对项、环境确认和回滚准备，形成标准化操作入口。',
@@ -38,7 +46,8 @@ function WorkspacePage() {
           <p className="workspace-hub-description">
             内部功能入口<br/>
             - TODO<br/>
-            - 快捷命令
+            - 快捷命令<br/>
+            - 项目记录
           </p>
         </div>
 
