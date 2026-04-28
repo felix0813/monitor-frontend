@@ -1,5 +1,5 @@
-import {useEffect, useMemo, useState} from 'react';
 import type {FormEvent} from 'react';
+import {useEffect, useMemo, useState} from 'react';
 import codeProjectService from '../services/CodeProjectService';
 import '../styles/code-project.css';
 import type {CodeProject} from '../types';
@@ -369,23 +369,23 @@ function CodeProjectPage() {
                         </div>
 
                         <div className="code-project-link-list">
-                          <a href={project.code_url} target="_blank" rel="noreferrer">
-                            代码地址
+                          <a>
+                            代码地址: {project.code_url}
                           </a>
                           {project.pipeline_url ? (
-                            <a href={project.pipeline_url} target="_blank" rel="noreferrer">
-                              流水线地址
-                            </a>
+                              <a>
+                                流水线地址: {project.pipeline_url}
+                              </a>
                           ) : null}
                           {project.deploy_url ? (
-                            <a href={project.deploy_url} target="_blank" rel="noreferrer">
-                              部署地址
-                            </a>
+                              <a>
+                                部署地址: {project.deploy_url}
+                              </a>
                           ) : null}
                           {project.data_url ? (
-                            <a href={project.data_url} target="_blank" rel="noreferrer">
-                              数据地址
-                            </a>
+                              <a>
+                                数据地址: {project.data_url}
+                              </a>
                           ) : null}
                         </div>
 
