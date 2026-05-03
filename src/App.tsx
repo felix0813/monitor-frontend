@@ -11,6 +11,7 @@ import TodoPage from './pages/TodoPage';
 import WorkspacePage from './pages/WorkspacePage';
 import CommandPage from './pages/CommandPage';
 import CodeProjectPage from './pages/CodeProjectPage';
+import AccountPasswordPage from './pages/AccountPasswordPage';
 import './App.css';
 
 const routeTitleMap: Record<string, string> = {
@@ -20,6 +21,7 @@ const routeTitleMap: Record<string, string> = {
   '/todo': '项目 Todo',
   '/command': '快捷命令',
   '/code-projects': '项目记录',
+  '/account-passwords': '账号密码',
   '/login': '登录',
 };
 
@@ -62,6 +64,7 @@ function App() {
             <Route path="/todo" element={<TodoPage />} />
             <Route path="/command" element={<CommandPage />} />
             <Route path="/code-projects" element={<CodeProjectPage />} />
+            <Route path="/account-passwords" element={<AccountPasswordPage />} />
           </Route>
         </Route>
 

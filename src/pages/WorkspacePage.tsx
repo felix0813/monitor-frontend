@@ -19,6 +19,14 @@ const features = [
     available: true,
   },
   {
+    title: '账号密码',
+    label: 'Account',
+    description: '统一维护内部账号、密码和用途说明，便于快速查询和协作交接。',
+    to: '/account-passwords',
+    actionText: '进入 账号密码',
+    available: true,
+  },
+  {
     title: '项目记录',
     label: 'Record',
     description: '集中维护项目代码、流水线、部署和数据地址，便于协作和追踪。',
@@ -48,6 +56,7 @@ function WorkspacePage() {
             - TODO<br/>
             - 快捷命令<br/>
             - 项目记录
+            - 账号密码
           </p>
         </div>
 
