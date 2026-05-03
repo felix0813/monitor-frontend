@@ -136,3 +136,24 @@ export interface UpdateCodeProjectRequest {
     data_url?: string;
 }
 
+
+export interface AccountPassword {
+    id: string;
+    account: string;
+    password: string;
+    description: string;
+    created_at: string;
+    updated_at: string;
+}
+
+export interface CreateAccountPasswordRequest {
+    account: string;
+    password: string;
+    description: string;
+}
+
+export interface UpdateAccountPasswordRequest {
+    account?: string;
+    password?: string;
+    description?: string;
+}
