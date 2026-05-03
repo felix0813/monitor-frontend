@@ -122,44 +122,85 @@ function AccountPasswordPage() {
     }
   };
 
-  if (loading) return <section className="account-password-page"><p>正在加载账号密码...</p></section>;
+  if (loading) {
+    return (
+      <section className="account-password-page">
+        <div className="account-password-loading">正在加载账号密码...</div>
+      </section>
+    );
+  }
 
   return (
     <section className="account-password-page">
       <header className="account-password-header">
-        <h2>账号密码管理</h2>
-        <p>用于维护工作台常用账号、密码和说明信息。</p>
+        <div>
+          <p className="account-password-kicker">Credentials</p>
+          <h2>账号密码管理</h2>
+          <p className="account-password-description">统一维护工作台常用账号、密码和说明信息。</p>
+        </div>
+        <span className="account-password-count">{records.length} 条记录</span>
       </header>
 
       <form className="account-password-form" onSubmit={handleCreate}>
-        <input placeholder="账号" value={createForm.account} onChange={(e) => setCreateForm((c) => ({...c, account: e.target.value}))} />
-        <input placeholder="密码" value={createForm.password} onChange={(e) => setCreateForm((c) => ({...c, password: e.target.value}))} />
-        <input placeholder="描述" value={createForm.description} onChange={(e) => setCreateForm((c) => ({...c, description: e.target.value}))} />
-        <button type="submit" disabled={creating}>{creating ? '创建中...' : '新增'}</button>
+        <label>
+          <span>账号</span>
+          <input placeholder="例如 admin@example.com" value={createForm.account} onChange={(e) => setCreateForm((current) => ({...current, account: e.target.value}))} />
+        </label>
+        <label>
+          <span>密码</span>
+          <input placeholder="输入密码" value={createForm.password} onChange={(e) => setCreateForm((current) => ({...current, password: e.target.value}))} />
+        </label>
+        <label>
+          <span>描述</span>
+          <input placeholder="用途或归属说明" value={createForm.description} onChange={(e) => setCreateForm((current) => ({...current, description: e.target.value}))} />
+        </label>
+        <button type="submit" disabled={creating}>{creating ? '创建中...' : '新增账号'}</button>
       </form>
 
       {errorText ? <p className="account-password-error">{errorText}</p> : null}
 
       <div className="account-password-list">
-        {records.map((record) => {
+        {records.length === 0 ? (
+          <div className="account-password-empty">
+            <h3>暂无账号记录</h3>
+            <p>新增后会以卡片形式展示在这里。</p>
+          </div>
+        ) : records.map((record) => {
           const isEditing = editingId === record.id;
           return (
             <article key={record.id} className="account-password-item">
               {isEditing ? (
-                <>
-                  <input value={editForm.account} onChange={(e) => setEditForm((c) => ({...c, account: e.target.value}))} />
-                  <input value={editForm.password} onChange={(e) => setEditForm((c) => ({...c, password: e.target.value}))} />
-                  <input value={editForm.description} onChange={(e) => setEditForm((c) => ({...c, description: e.target.value}))} />
+                <div className="account-password-edit">
+                  <label>
+                    <span>账号</span>
+                    <input value={editForm.account} onChange={(e) => setEditForm((current) => ({...current, account: e.target.value}))} />
+                  </label>
+                  <label>
+                    <span>密码</span>
+                    <input value={editForm.password} onChange={(e) => setEditForm((current) => ({...current, password: e.target.value}))} />
+                  </label>
+                  <label>
+                    <span>描述</span>
+                    <input value={editForm.description} onChange={(e) => setEditForm((current) => ({...current, description: e.target.value}))} />
+                  </label>
                   <div className="account-password-actions">
-                    <button type="button" onClick={() => saveEdit(record.id)} disabled={savingId === record.id}>{savingId === record.id ? '保存中...' : '保存'}</button>
+                    <button className="account-password-primary" type="button" onClick={() => saveEdit(record.id)} disabled={savingId === record.id}>{savingId === record.id ? '保存中...' : '保存'}</button>
                     <button type="button" onClick={() => setEditingId('')}>取消</button>
                   </div>
-                </>
+                </div>
               ) : (
                 <>
-                  <p><strong>账号：</strong>{record.account}</p>
-                  <p><strong>密码：</strong>{record.password}</p>
-                  <p><strong>描述：</strong>{record.description}</p>
+                  <div className="account-password-card-head">
+                    <span className="account-password-avatar">{record.account.slice(0, 1).toUpperCase()}</span>
+                    <div>
+                      <h3>{record.account}</h3>
+                      <p>{record.description}</p>
+                    </div>
+                  </div>
+                  <div className="account-password-secret">
+                    <span>密码</span>
+                    <strong>{record.password}</strong>
+                  </div>
                   <div className="account-password-actions">
                     <button type="button" onClick={() => startEdit(record)}>编辑</button>
                     <button type="button" onClick={() => remove(record)} disabled={deletingId === record.id}>{deletingId === record.id ? '删除中...' : '删除'}</button>
