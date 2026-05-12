@@ -55,7 +55,7 @@ function WorkspacePage() {
             内部功能入口<br/>
             - TODO<br/>
             - 快捷命令<br/>
-            - 项目记录
+            - 项目记录<br/>
             - 账号密码
           </p>
         </div>
