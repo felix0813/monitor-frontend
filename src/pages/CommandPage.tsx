@@ -63,6 +63,8 @@ function CommandPage() {
   const [executing, setExecuting] = useState(false);
   const [executeResult, setExecuteResult] = useState('');
   const [executeError, setExecuteError] = useState('');
+  const [executeStdout, setExecuteStdout] = useState('');
+  const [executeStderr, setExecuteStderr] = useState('');
 
   const loadTemplates = async () => {
     setLoadingTemplates(true);
@@ -115,6 +117,8 @@ function CommandPage() {
   const resetExecutionState = () => {
     setExecuteResult('');
     setExecuteError('');
+    setExecuteStdout('');
+    setExecuteStderr('');
   };
 
   const handleTemplateClick = (template: CommandTemplate) => {
@@ -257,10 +261,12 @@ function CommandPage() {
       const result = await commandService.executeCommand(finalCommand);
       if (result.success) {
         setExecuteResult(result.output || '执行成功');
+        setExecuteStdout(result.stdout || '');
         return;
       }
 
       setExecuteError(result.error || '执行失败');
+      setExecuteStderr(result.stderr || '');
     } catch (error) {
       setExecuteError(error instanceof Error ? error.message : '执行异常');
     } finally {
@@ -466,15 +472,27 @@ function CommandPage() {
                 </div>
               </div>
 
-              <pre
+              <div
                 className={
                   executeError
                     ? 'command-result-box command-result-box-error'
                     : 'command-result-box command-result-box-success'
                 }
               >
-                {executeError || executeResult}
-              </pre>
+                <div className="command-result-main">{executeError || executeResult}</div>
+                {executeResult && executeStdout && (
+                  <div className="command-result-extra">
+                    <div className="command-result-extra-label">STDOUT</div>
+                    <pre className="command-result-extra-content">{executeStdout}</pre>
+                  </div>
+                )}
+                {executeError && executeStderr && (
+                  <div className="command-result-extra">
+                    <div className="command-result-extra-label">STDERR</div>
+                    <pre className="command-result-extra-content">{executeStderr}</pre>
+                  </div>
+                )}
+              </div>
             </section>
           ) : null}
         </div>

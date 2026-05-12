@@ -279,9 +279,42 @@
   border: 1px solid rgba(255, 255, 255, 0.08);
   background: rgba(255, 255, 255, 0.04);
   color: rgba(255, 244, 230, 0.86);
+  line-height: 1.7;
+}
+
+.command-preview-box {
   white-space: pre-wrap;
   word-break: break-word;
-  line-height: 1.7;
+}
+
+.command-result-main {
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.command-result-extra {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.command-result-extra-label {
+  font-size: 12px;
+  letter-spacing: 0.1em;
+  font-weight: 600;
+  margin-bottom: 8px;
+  opacity: 0.64;
+}
+
+.command-result-extra-content {
+  margin: 0;
+  padding: 14px;
+  border-radius: 14px;
+  background: rgba(0, 0, 0, 0.2);
+  white-space: pre-wrap;
+  word-break: break-word;
+  font-size: 13px;
+  line-height: 1.6;
 }
 
 .command-result-box-success {

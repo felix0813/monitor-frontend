@@ -107,6 +107,8 @@ export interface ExecuteCommandResponse {
     success: boolean;
     output?: string;
     error?: string;
+    stdout?: string;
+    stderr?: string;
 }
 
 export interface CodeProject {
